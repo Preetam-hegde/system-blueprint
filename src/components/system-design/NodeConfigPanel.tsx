@@ -1,4 +1,5 @@
 import { useDesignStore } from '@/store/useDesignStore';
+import { getNodeCatalogItem } from '@/types/system-design';
 import type { EdgeConfig, ConnectionProtocol } from '@/types/system-design';
 import type { SystemNodeData } from '@/store/useDesignStore';
 import { CATEGORY_COLORS } from '@/types/system-design';
@@ -13,9 +14,11 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Trash2, Copy, Settings2, Network, PanelRightOpen } from 'lucide-react';
 import ProtocolInfoPopover from './ProtocolInfoPopover';
+import NodeInfoContent from './NodeInfoContent';
 
 const REGIONS = ['us-east-1', 'us-west-2', 'eu-west-1', 'eu-central-1', 'ap-southeast-1', 'ap-northeast-1'];
 const PROTOCOLS: ConnectionProtocol[] = ['HTTP', 'gRPC', 'WebSocket', 'TCP', 'Pub/Sub', 'GraphQL', 'MQTT', 'AMQP'];
+const getNodeLabel = (data: unknown) => (data as SystemNodeData | undefined)?.label ?? 'Unknown';
 
 export default function NodeConfigPanel() {
   const { nodes, edges, selectedNodeId, selectedEdgeId, selectNode, selectEdge, updateNodeConfig, updateEdgeConfig, deleteSelected, duplicateNode } = useDesignStore();
@@ -74,6 +77,7 @@ export default function NodeConfigPanel() {
   const isMessaging = d.category === 'messaging';
   const isAI = d.category === 'ai-ml';
   const color = CATEGORY_COLORS[d.category] || '221 83% 53%';
+  const catalogItem = getNodeCatalogItem(d.nodeType);
 
   const handleDuplicate = () => {
     if (selectedNodeId) duplicateNode(selectedNodeId);
@@ -109,7 +113,14 @@ export default function NodeConfigPanel() {
             <Input className="h-8 text-xs" value={d.label} onChange={(e) => updateNodeConfig(selectedNodeId!, { label: e.target.value })} />
           </div>
 
-          <Separator />
+          {catalogItem && (
+            <>
+              <div className="rounded-lg border border-border/70 bg-card/60 p-3">
+                <NodeInfoContent item={catalogItem} />
+              </div>
+              <Separator />
+            </>
+          )}
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
@@ -198,7 +209,7 @@ export default function NodeConfigPanel() {
                       const ed = (e.data || {}) as unknown as EdgeConfig;
                       return (
                         <div key={e.id} className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-accent/50 rounded px-2 py-1">
-                          <span className="font-medium text-foreground">{(sourceNode?.data as any)?.label || 'Unknown'}</span>
+                          <span className="font-medium text-foreground">{getNodeLabel(sourceNode?.data)}</span>
                           <span>via</span>
                           <Badge variant="outline" className="text-[9px] h-4 px-1">{ed.protocol || 'HTTP'}</Badge>
                         </div>
@@ -214,7 +225,7 @@ export default function NodeConfigPanel() {
                       const ed = (e.data || {}) as unknown as EdgeConfig;
                       return (
                         <div key={e.id} className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-accent/50 rounded px-2 py-1">
-                          <span className="font-medium text-foreground">{(targetNode?.data as any)?.label || 'Unknown'}</span>
+                          <span className="font-medium text-foreground">{getNodeLabel(targetNode?.data)}</span>
                           <span>via</span>
                           <Badge variant="outline" className="text-[9px] h-4 px-1">{ed.protocol || 'HTTP'}</Badge>
                         </div>

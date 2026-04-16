@@ -14,8 +14,10 @@ import {
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useState, useCallback, useEffect } from 'react';
+import NodeInfoContent from './NodeInfoContent';
 
 const ICON_MAP: Record<SystemNodeType, React.ElementType> = {
   'server': Server, 'api-gateway': Shield, 'load-balancer': Globe, 'cdn': Zap, 'serverless': Cloud,
@@ -145,8 +147,8 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
                 const Icon = ICON_MAP[item.type];
                 const color = CATEGORY_COLORS[item.category];
                 return (
-                  <Tooltip key={type}>
-                    <TooltipTrigger asChild>
+                  <HoverCard key={type} openDelay={120}>
+                    <HoverCardTrigger asChild>
                       <div
                         draggable
                         onDragStart={(e) => onDragStart(e, item.type)}
@@ -155,9 +157,11 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
                         <Icon className="w-3.5 h-3.5" style={{ color: `hsl(${color})` }} />
                         <span className="text-[8px] text-muted-foreground truncate w-full text-center">{item.label}</span>
                       </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="right"><p className="text-xs">{item.label}</p></TooltipContent>
-                  </Tooltip>
+                    </HoverCardTrigger>
+                    <HoverCardContent side="right" align="start" className="w-72">
+                      <NodeInfoContent item={item} compact />
+                    </HoverCardContent>
+                  </HoverCard>
                 );
               })}
             </div>
@@ -189,8 +193,8 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
                     {items.map((item) => {
                       const Icon = ICON_MAP[item.type];
                       return (
-                        <Tooltip key={item.type}>
-                          <TooltipTrigger asChild>
+                        <HoverCard key={item.type} openDelay={120}>
+                          <HoverCardTrigger asChild>
                             <div
                               draggable
                               onDragStart={(e) => onDragStart(e, item.type)}
@@ -201,12 +205,11 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
                               </div>
                               <span className="text-[10px] font-medium text-foreground/80 leading-tight">{item.label}</span>
                             </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="right" className="max-w-[180px]">
-                            <p className="text-xs font-medium">{item.label}</p>
-                            <p className="text-[10px] text-muted-foreground">{item.description}</p>
-                          </TooltipContent>
-                        </Tooltip>
+                          </HoverCardTrigger>
+                          <HoverCardContent side="right" align="start" className="w-72">
+                            <NodeInfoContent item={item} compact />
+                          </HoverCardContent>
+                        </HoverCard>
                       );
                     })}
                   </div>

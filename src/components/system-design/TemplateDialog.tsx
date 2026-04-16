@@ -1,50 +1,74 @@
+import type { ElementType } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { LayoutTemplate, Globe, Brain, Radio, ShoppingCart, MessageSquare } from 'lucide-react';
-import { useDesignStore } from '@/store/useDesignStore';
+import { useDesignStore, type SystemNodeData } from '@/store/useDesignStore';
+import type { Edge, Node } from '@xyflow/react';
+import type { EdgeConfig, NodeCategory, SystemNodeType } from '@/types/system-design';
 import { useState } from 'react';
 import { toast } from 'sonner';
+
+type TemplateNode = Node<Record<string, unknown>, 'systemNode'>;
+type TemplateEdge = Edge<Record<string, unknown>, 'systemEdge'>;
 
 interface Template {
   id: string;
   name: string;
   description: string;
-  icon: React.ElementType;
+  icon: ElementType;
   color: string;
-  build: () => { nodes: any[]; edges: any[] };
+  build: () => { nodes: TemplateNode[]; edges: TemplateEdge[] };
 }
 
-function makeNode(id: string, type: string, label: string, category: string, x: number, y: number, overrides?: Record<string, any>) {
+function makeNode(
+  id: string,
+  type: SystemNodeType,
+  label: string,
+  category: NodeCategory,
+  x: number,
+  y: number,
+  overrides: Partial<SystemNodeData> = {},
+): TemplateNode {
+  const data: SystemNodeData = {
+    label,
+    nodeType: type,
+    category,
+    replicas: 1,
+    region: 'us-east-1',
+    cpu: 2,
+    memory: 4,
+    throughputLimit: 1000,
+    latency: 10,
+    notes: '',
+    currentLoad: 0,
+    isBottleneck: false,
+    isSpof: false,
+    ...overrides,
+  };
+
   return {
     id,
     type: 'systemNode',
     position: { x, y },
-    data: {
-      label,
-      nodeType: type,
-      category,
-      replicas: 1,
-      region: 'us-east-1',
-      cpu: 2,
-      memory: 4,
-      throughputLimit: 1000,
-      latency: 10,
-      notes: '',
-      currentLoad: 0,
-      isBottleneck: false,
-      isSpof: false,
-      ...overrides,
-    },
+    data: data as Record<string, unknown>,
   };
 }
 
-function makeEdge(id: string, source: string, target: string, protocol = 'HTTP', latency = 5) {
+function makeEdge(
+  id: string,
+  source: string,
+  target: string,
+  protocol: EdgeConfig['protocol'] = 'HTTP',
+  latency = 5,
+): TemplateEdge {
+  const data: EdgeConfig = { protocol, latency, bandwidth: 100, label: '' };
+
   return {
     id,
     type: 'systemEdge',
     source,
     target,
-    data: { protocol, latency, bandwidth: 100, label: '' },
+    data: data as Record<string, unknown>,
   };
 }
 

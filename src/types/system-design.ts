@@ -12,6 +12,15 @@ export type SystemNodeType =
 
 export type ConnectionProtocol = 'HTTP' | 'gRPC' | 'WebSocket' | 'TCP' | 'Pub/Sub' | 'GraphQL' | 'MQTT' | 'AMQP';
 
+export interface NodeCatalogItem {
+  type: SystemNodeType;
+  label: string;
+  category: NodeCategory;
+  description: string;
+  whatItDoes: string;
+  usedFor: string[];
+}
+
 export interface ProtocolInfo {
   name: string;
   description: string;
@@ -144,55 +153,58 @@ export const CATEGORY_COLORS: Record<NodeCategory, string> = {
   'security': '340 75% 55%',
 };
 
-export const NODE_CATALOG: { type: SystemNodeType; label: string; category: NodeCategory; description: string }[] = [
+export const NODE_CATALOG: NodeCatalogItem[] = [
   // Compute
-  { type: 'server', label: 'Server', category: 'compute', description: 'Application server instance' },
-  { type: 'api-gateway', label: 'API Gateway', category: 'compute', description: 'Request routing & auth' },
-  { type: 'load-balancer', label: 'Load Balancer', category: 'compute', description: 'Distribute traffic across nodes' },
-  { type: 'cdn', label: 'CDN', category: 'compute', description: 'Content delivery network' },
-  { type: 'serverless', label: 'Serverless', category: 'compute', description: 'Event-driven functions (Lambda)' },
+  { type: 'server', label: 'Server', category: 'compute', description: 'Application server instance', whatItDoes: 'Runs application logic and handles requests from other services or clients.', usedFor: ['Monoliths and microservices', 'Backend APIs', 'Business logic processing'] },
+  { type: 'api-gateway', label: 'API Gateway', category: 'compute', description: 'Request routing & auth', whatItDoes: 'Acts as the front door for APIs by routing requests, enforcing auth, and shaping traffic.', usedFor: ['Public API entry points', 'Authentication and rate limiting', 'Request aggregation for services'] },
+  { type: 'load-balancer', label: 'Load Balancer', category: 'compute', description: 'Distribute traffic across nodes', whatItDoes: 'Spreads incoming traffic across multiple instances to improve availability and performance.', usedFor: ['Horizontal scaling', 'High availability setups', 'Traffic distribution across replicas'] },
+  { type: 'cdn', label: 'CDN', category: 'compute', description: 'Content delivery network', whatItDoes: 'Caches and serves content from edge locations closer to users.', usedFor: ['Static asset delivery', 'Global web apps', 'Reducing origin latency and load'] },
+  { type: 'serverless', label: 'Serverless', category: 'compute', description: 'Event-driven functions (Lambda)', whatItDoes: 'Executes short-lived code on demand without managing long-running servers.', usedFor: ['Event-driven workflows', 'Lightweight APIs', 'Background tasks and automations'] },
   // Storage
-  { type: 'sql-db', label: 'SQL DB', category: 'storage', description: 'Relational database (PostgreSQL)' },
-  { type: 'nosql-db', label: 'NoSQL DB', category: 'storage', description: 'Document store (MongoDB)' },
-  { type: 'vector-db', label: 'Vector DB', category: 'storage', description: 'Embeddings store (Pinecone)' },
-  { type: 'cache', label: 'Cache', category: 'storage', description: 'In-memory store (Redis)' },
-  { type: 'object-storage', label: 'Object Storage', category: 'storage', description: 'Blob storage (S3)' },
-  { type: 'data-lake', label: 'Data Lake', category: 'storage', description: 'Large-scale raw data storage' },
-  { type: 'graph-db', label: 'Graph DB', category: 'storage', description: 'Relationship-focused (Neo4j)' },
+  { type: 'sql-db', label: 'SQL DB', category: 'storage', description: 'Relational database (PostgreSQL)', whatItDoes: 'Stores structured data with schemas, transactions, and relational queries.', usedFor: ['Transactional systems', 'User and order data', 'ACID workloads'] },
+  { type: 'nosql-db', label: 'NoSQL DB', category: 'storage', description: 'Document store (MongoDB)', whatItDoes: 'Stores flexible or semi-structured data with schema-light access patterns.', usedFor: ['Document data models', 'Rapidly evolving schemas', 'High-scale read/write workloads'] },
+  { type: 'vector-db', label: 'Vector DB', category: 'storage', description: 'Embeddings store (Pinecone)', whatItDoes: 'Indexes embeddings so similar items can be retrieved through nearest-neighbor search.', usedFor: ['RAG systems', 'Semantic search', 'Recommendation and similarity matching'] },
+  { type: 'cache', label: 'Cache', category: 'storage', description: 'In-memory store (Redis)', whatItDoes: 'Keeps hot data in memory to reduce latency and offload primary databases.', usedFor: ['Session storage', 'Read caching', 'Rate limiting and ephemeral state'] },
+  { type: 'object-storage', label: 'Object Storage', category: 'storage', description: 'Blob storage (S3)', whatItDoes: 'Stores files and large blobs durably with simple key-based access.', usedFor: ['Images and media', 'Documents and backups', 'Data exports and archives'] },
+  { type: 'data-lake', label: 'Data Lake', category: 'storage', description: 'Large-scale raw data storage', whatItDoes: 'Collects large volumes of raw data for later processing, analytics, or machine learning.', usedFor: ['Analytics pipelines', 'Batch data ingestion', 'Historical raw event storage'] },
+  { type: 'graph-db', label: 'Graph DB', category: 'storage', description: 'Relationship-focused (Neo4j)', whatItDoes: 'Stores entities and their relationships so traversal-heavy queries stay fast.', usedFor: ['Fraud detection', 'Knowledge graphs', 'Social and dependency graphs'] },
   // Messaging
-  { type: 'message-queue', label: 'Message Queue', category: 'messaging', description: 'Async task queue (SQS)' },
-  { type: 'event-bus', label: 'Event Bus', category: 'messaging', description: 'Event streaming (Kafka)' },
-  { type: 'stream-processor', label: 'Stream Processor', category: 'messaging', description: 'Real-time processing (Flink)' },
-  { type: 'webhook', label: 'Webhook', category: 'messaging', description: 'HTTP callback endpoint' },
+  { type: 'message-queue', label: 'Message Queue', category: 'messaging', description: 'Async task queue (SQS)', whatItDoes: 'Buffers work items so producers and consumers can operate independently.', usedFor: ['Background jobs', 'Retryable tasks', 'Smoothing traffic spikes'] },
+  { type: 'event-bus', label: 'Event Bus', category: 'messaging', description: 'Event streaming (Kafka)', whatItDoes: 'Distributes events to multiple consumers without tightly coupling producers to them.', usedFor: ['Event-driven systems', 'Audit/event streams', 'Fan-out integrations'] },
+  { type: 'stream-processor', label: 'Stream Processor', category: 'messaging', description: 'Real-time processing (Flink)', whatItDoes: 'Consumes continuous event streams and transforms or aggregates them in real time.', usedFor: ['Real-time analytics', 'Fraud and anomaly detection', 'Live ETL pipelines'] },
+  { type: 'webhook', label: 'Webhook', category: 'messaging', description: 'HTTP callback endpoint', whatItDoes: 'Receives outbound event notifications over HTTP from third-party or internal systems.', usedFor: ['Third-party integrations', 'Payment callbacks', 'Triggering downstream workflows'] },
   // AI / ML
-  { type: 'llm', label: 'LLM', category: 'ai-ml', description: 'Large language model (GPT-4)' },
-  { type: 'rag-pipeline', label: 'RAG Pipeline', category: 'ai-ml', description: 'Retrieval-augmented generation' },
-  { type: 'ml-model', label: 'ML Model', category: 'ai-ml', description: 'Custom ML inference endpoint' },
-  { type: 'embedding-service', label: 'Embeddings', category: 'ai-ml', description: 'Text/image embedding service' },
-  { type: 'ai-agent', label: 'AI Agent', category: 'ai-ml', description: 'Autonomous AI agent (tool use)' },
-  { type: 'fine-tuning', label: 'Fine-Tuning', category: 'ai-ml', description: 'Model fine-tuning pipeline' },
+  { type: 'llm', label: 'LLM', category: 'ai-ml', description: 'Large language model (GPT-4)', whatItDoes: 'Generates, summarizes, or transforms language based on prompts and context.', usedFor: ['Chat and assistants', 'Content generation', 'Reasoning over text'] },
+  { type: 'rag-pipeline', label: 'RAG Pipeline', category: 'ai-ml', description: 'Retrieval-augmented generation', whatItDoes: 'Fetches relevant context before passing it to an LLM so responses are grounded in external data.', usedFor: ['Enterprise search assistants', 'Document question answering', 'Knowledge-grounded copilots'] },
+  { type: 'ml-model', label: 'ML Model', category: 'ai-ml', description: 'Custom ML inference endpoint', whatItDoes: 'Serves predictions from a trained model over an inference API.', usedFor: ['Classification and ranking', 'Recommendation systems', 'Custom predictive models'] },
+  { type: 'embedding-service', label: 'Embeddings', category: 'ai-ml', description: 'Text/image embedding service', whatItDoes: 'Converts content into vectors so machines can compare meaning or similarity.', usedFor: ['Semantic search', 'Clustering and retrieval', 'RAG indexing pipelines'] },
+  { type: 'ai-agent', label: 'AI Agent', category: 'ai-ml', description: 'Autonomous AI agent (tool use)', whatItDoes: 'Plans steps, invokes tools, and coordinates actions toward a higher-level goal.', usedFor: ['Workflow automation', 'Tool-using assistants', 'Multi-step task execution'] },
+  { type: 'fine-tuning', label: 'Fine-Tuning', category: 'ai-ml', description: 'Model fine-tuning pipeline', whatItDoes: 'Adapts a base model to a specific task or domain using additional training data.', usedFor: ['Domain-specific behavior', 'Style adaptation', 'Improving task accuracy'] },
   // Networking
-  { type: 'dns', label: 'DNS', category: 'networking', description: 'Domain name resolution' },
-  { type: 'firewall', label: 'Firewall', category: 'networking', description: 'Network traffic filtering' },
-  { type: 'rate-limiter', label: 'Rate Limiter', category: 'networking', description: 'Request throttling' },
-  { type: 'service-mesh', label: 'Service Mesh', category: 'networking', description: 'Sidecar proxy (Istio)' },
-  { type: 'reverse-proxy', label: 'Reverse Proxy', category: 'networking', description: 'Request forwarding (Nginx)' },
+  { type: 'dns', label: 'DNS', category: 'networking', description: 'Domain name resolution', whatItDoes: 'Maps human-readable domain names to IP addresses or service endpoints.', usedFor: ['Public domain routing', 'Internal service discovery', 'Failover and traffic steering'] },
+  { type: 'firewall', label: 'Firewall', category: 'networking', description: 'Network traffic filtering', whatItDoes: 'Allows or blocks traffic based on network and security rules.', usedFor: ['Perimeter defense', 'Segmentation between services', 'Restricting inbound or outbound access'] },
+  { type: 'rate-limiter', label: 'Rate Limiter', category: 'networking', description: 'Request throttling', whatItDoes: 'Caps how many requests a client or service can make in a time window.', usedFor: ['Abuse prevention', 'Protecting backend capacity', 'Enforcing tenant quotas'] },
+  { type: 'service-mesh', label: 'Service Mesh', category: 'networking', description: 'Sidecar proxy (Istio)', whatItDoes: 'Manages service-to-service communication policies, routing, and telemetry.', usedFor: ['Microservice observability', 'Traffic shaping and retries', 'mTLS between services'] },
+  { type: 'reverse-proxy', label: 'Reverse Proxy', category: 'networking', description: 'Request forwarding (Nginx)', whatItDoes: 'Receives client traffic and forwards it to upstream services or applications.', usedFor: ['TLS termination', 'Static content serving', 'Routing to backend services'] },
   // Clients
-  { type: 'web-client', label: 'Web Client', category: 'clients', description: 'Browser-based application' },
-  { type: 'mobile-client', label: 'Mobile Client', category: 'clients', description: 'iOS / Android app' },
-  { type: 'iot-device', label: 'IoT Device', category: 'clients', description: 'Connected sensor/device' },
-  { type: 'desktop-client', label: 'Desktop App', category: 'clients', description: 'Native desktop application' },
+  { type: 'web-client', label: 'Web Client', category: 'clients', description: 'Browser-based application', whatItDoes: 'Provides the browser UI that end users interact with.', usedFor: ['Customer-facing apps', 'Admin dashboards', 'Internal web tools'] },
+  { type: 'mobile-client', label: 'Mobile Client', category: 'clients', description: 'iOS / Android app', whatItDoes: 'Provides a native or hybrid mobile experience for end users.', usedFor: ['Consumer mobile apps', 'Field and on-the-go workflows', 'Push notification experiences'] },
+  { type: 'iot-device', label: 'IoT Device', category: 'clients', description: 'Connected sensor/device', whatItDoes: 'Produces telemetry or receives commands from the platform over a network.', usedFor: ['Sensor networks', 'Smart devices', 'Industrial telemetry systems'] },
+  { type: 'desktop-client', label: 'Desktop App', category: 'clients', description: 'Native desktop application', whatItDoes: 'Delivers an installed desktop interface with local OS integration.', usedFor: ['Power-user tools', 'Internal enterprise clients', 'Offline-capable applications'] },
   // Observability
-  { type: 'log-aggregator', label: 'Log Aggregator', category: 'observability', description: 'Centralized logging (ELK)' },
-  { type: 'metrics-server', label: 'Metrics', category: 'observability', description: 'Metrics collection (Prometheus)' },
-  { type: 'tracing', label: 'Tracing', category: 'observability', description: 'Distributed tracing (Jaeger)' },
-  { type: 'alerting', label: 'Alerting', category: 'observability', description: 'Alert management (PagerDuty)' },
+  { type: 'log-aggregator', label: 'Log Aggregator', category: 'observability', description: 'Centralized logging (ELK)', whatItDoes: 'Collects logs from many systems into one searchable place.', usedFor: ['Operational debugging', 'Audit trails', 'Incident investigation'] },
+  { type: 'metrics-server', label: 'Metrics', category: 'observability', description: 'Metrics collection (Prometheus)', whatItDoes: 'Scrapes or receives time-series measurements about system health and performance.', usedFor: ['Dashboards', 'Capacity planning', 'SLO and performance monitoring'] },
+  { type: 'tracing', label: 'Tracing', category: 'observability', description: 'Distributed tracing (Jaeger)', whatItDoes: 'Tracks a request across services so latency and failure points are visible.', usedFor: ['Microservice debugging', 'Latency analysis', 'Dependency mapping'] },
+  { type: 'alerting', label: 'Alerting', category: 'observability', description: 'Alert management (PagerDuty)', whatItDoes: 'Routes operational alerts to the right people or escalation policies.', usedFor: ['Incident response', 'On-call workflows', 'Threshold or anomaly notifications'] },
   // Security
-  { type: 'waf', label: 'WAF', category: 'security', description: 'Web application firewall' },
-  { type: 'vault', label: 'Vault', category: 'security', description: 'Secrets management (HashiCorp)' },
-  { type: 'identity-provider', label: 'Identity Provider', category: 'security', description: 'SSO / SAML / OIDC' },
-  { type: 'oauth-server', label: 'OAuth Server', category: 'security', description: 'Authorization server' },
+  { type: 'waf', label: 'WAF', category: 'security', description: 'Web application firewall', whatItDoes: 'Inspects and filters HTTP traffic to block common web attacks before they hit the app.', usedFor: ['Bot and exploit protection', 'Internet-facing apps', 'Edge security controls'] },
+  { type: 'vault', label: 'Vault', category: 'security', description: 'Secrets management (HashiCorp)', whatItDoes: 'Stores and controls access to secrets, credentials, and encryption material.', usedFor: ['Database credentials', 'API keys and tokens', 'Secret rotation workflows'] },
+  { type: 'identity-provider', label: 'Identity Provider', category: 'security', description: 'SSO / SAML / OIDC', whatItDoes: 'Authenticates users and issues identity assertions or tokens.', usedFor: ['Single sign-on', 'Enterprise auth', 'Centralized user identity management'] },
+  { type: 'oauth-server', label: 'OAuth Server', category: 'security', description: 'Authorization server', whatItDoes: 'Issues access tokens and manages delegated permissions between clients and APIs.', usedFor: ['API authorization', 'Third-party app access', 'Scoped token issuance'] },
 ];
+
+export const getNodeCatalogItem = (type: SystemNodeType) =>
+  NODE_CATALOG.find((item) => item.type === type);
 
 export const DEFAULT_NODE_CONFIG: NodeConfig = {
   label: '',

@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps, useEdges } from '@xyflow/react';
 import type { SystemNodeData } from '@/store/useDesignStore';
-import { CATEGORY_COLORS } from '@/types/system-design';
+import { CATEGORY_COLORS, getNodeCatalogItem } from '@/types/system-design';
 import {
   Server, Shield, Globe, Zap, Cloud,
   Database, HardDrive, Box, Cpu,
@@ -14,6 +14,8 @@ import {
   ShieldAlert, Lock, UserCheck, KeyRound,
 } from 'lucide-react';
 import type { SystemNodeType } from '@/types/system-design';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import NodeInfoContent from './NodeInfoContent';
 
 const ICON_MAP: Record<SystemNodeType, React.ElementType> = {
   'server': Server, 'api-gateway': Shield, 'load-balancer': Globe,
@@ -34,6 +36,7 @@ const ICON_MAP: Record<SystemNodeType, React.ElementType> = {
 function SystemNodeComponent({ data, selected, id }: NodeProps) {
   const d = data as unknown as SystemNodeData;
   const Icon = ICON_MAP[d.nodeType] || Server;
+  const catalogItem = getNodeCatalogItem(d.nodeType);
   const color = CATEGORY_COLORS[d.category] || '221 83% 53%';
   const loadPct = d.throughputLimit > 0 ? (d.currentLoad / d.throughputLimit) * 100 : 0;
 
@@ -69,7 +72,7 @@ function SystemNodeComponent({ data, selected, id }: NodeProps) {
     borderColor: 'hsl(var(--card))',
   };
 
-  return (
+  const nodeBody = (
     <div
       className="relative rounded-xl border-2 bg-card px-4 py-3 min-w-[155px] hover:-translate-y-0.5 hover:shadow-lg"
       style={{ borderColor, boxShadow: shadowStyle }}
@@ -77,7 +80,6 @@ function SystemNodeComponent({ data, selected, id }: NodeProps) {
       <Handle type="target" position={Position.Top} className="!w-3 !h-3 !border-2 !-top-1.5" style={handleStyle} />
       <Handle type="target" position={Position.Left} className="!w-3 !h-3 !border-2 !-left-1.5" style={handleStyle} />
 
-      {/* Status dot - always visible */}
       <div className="absolute top-2 right-2 flex items-center gap-1">
         {connCount > 0 && (
           <span className="text-[8px] font-mono text-muted-foreground bg-muted rounded px-1">
@@ -148,6 +150,19 @@ function SystemNodeComponent({ data, selected, id }: NodeProps) {
       <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !border-2 !-bottom-1.5" style={handleStyle} />
       <Handle type="source" position={Position.Right} className="!w-3 !h-3 !border-2 !-right-1.5" style={handleStyle} />
     </div>
+  );
+
+  if (!catalogItem) return nodeBody;
+
+  return (
+    <HoverCard openDelay={150}>
+      <HoverCardTrigger asChild>
+        {nodeBody}
+      </HoverCardTrigger>
+      <HoverCardContent side="right" align="start" className="w-72">
+        <NodeInfoContent item={catalogItem} compact />
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 
