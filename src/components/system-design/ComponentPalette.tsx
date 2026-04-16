@@ -10,6 +10,7 @@ import {
   Webhook, Bot, GraduationCap, Layers, ArrowLeftRight,
   Laptop, FileText, BarChart3, GitBranch, Bell,
   ShieldAlert, Lock, UserCheck, KeyRound,
+  Hammer, Clock3, Inbox, Radar, ChartNoAxesColumn, Bug, Key, Route,
 } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
@@ -18,19 +19,21 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useState, useCallback, useEffect } from 'react';
 import NodeInfoContent from './NodeInfoContent';
+import TemplateDialog from './TemplateDialog';
 
 const ICON_MAP: Record<SystemNodeType, React.ElementType> = {
   'server': Server, 'api-gateway': Shield, 'load-balancer': Globe, 'cdn': Zap, 'serverless': Cloud,
+  'job-worker': Hammer, 'scheduler': Clock3,
   'sql-db': Database, 'nosql-db': HardDrive, 'vector-db': Box, 'cache': Cpu, 'object-storage': HardDrive,
-  'data-lake': Layers, 'graph-db': GitBranch,
-  'message-queue': Mail, 'event-bus': Radio, 'stream-processor': Activity, 'webhook': Webhook,
+  'data-lake': Layers, 'graph-db': GitBranch, 'time-series-db': ChartNoAxesColumn,
+  'message-queue': Mail, 'event-bus': Radio, 'stream-processor': Activity, 'webhook': Webhook, 'dead-letter-queue': Inbox,
   'llm': Brain, 'rag-pipeline': Workflow, 'ml-model': Cog, 'embedding-service': Binary,
-  'ai-agent': Bot, 'fine-tuning': GraduationCap,
-  'dns': Wifi, 'firewall': ShieldCheck, 'rate-limiter': Gauge,
+  'ai-agent': Bot, 'fine-tuning': GraduationCap, 'model-router': Route,
+  'dns': Wifi, 'firewall': ShieldCheck, 'rate-limiter': Gauge, 'service-discovery': Radar,
   'service-mesh': ArrowLeftRight, 'reverse-proxy': Globe,
   'web-client': Monitor, 'mobile-client': Smartphone, 'iot-device': CircuitBoard, 'desktop-client': Laptop,
-  'log-aggregator': FileText, 'metrics-server': BarChart3, 'tracing': GitBranch, 'alerting': Bell,
-  'waf': ShieldAlert, 'vault': Lock, 'identity-provider': UserCheck, 'oauth-server': KeyRound,
+  'log-aggregator': FileText, 'metrics-server': BarChart3, 'tracing': GitBranch, 'alerting': Bell, 'error-tracker': Bug,
+  'waf': ShieldAlert, 'vault': Lock, 'identity-provider': UserCheck, 'oauth-server': KeyRound, 'kms': Key,
 };
 
 const CATEGORY_LABELS: Record<NodeCategory, string> = {
@@ -84,9 +87,14 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
   if (collapsed) {
     return (
       <div className="w-12 border-r border-border glass h-full flex flex-col items-center py-2 gap-1">
-        <Button variant="ghost" size="icon" className="h-8 w-8 mb-2" onClick={onToggle}>
-          <PanelLeft className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 mb-2" onClick={onToggle}>
+              <PanelLeft className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">Expand component sidebar</TooltipContent>
+        </Tooltip>
         {categories.map((cat) => {
           const color = CATEGORY_COLORS[cat];
           const items = NODE_CATALOG.filter((n) => n.category === cat);
@@ -121,9 +129,14 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
             <h2 className="text-sm font-bold text-foreground tracking-tight">Components</h2>
             <p className="text-[10px] text-muted-foreground mt-0.5">Drag & drop onto canvas</p>
           </div>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onToggle}>
-            <PanelLeftClose className="w-3.5 h-3.5" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onToggle}>
+                <PanelLeftClose className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Collapse component sidebar</TooltipContent>
+          </Tooltip>
         </div>
         <div className="relative mt-2">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -133,6 +146,9 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+        </div>
+        <div className="mt-3">
+          <TemplateDialog trigger="sidebar" />
         </div>
       </div>
       <div className="flex-1 overflow-y-auto">

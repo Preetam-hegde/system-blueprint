@@ -27,6 +27,7 @@ export default tseslint.config(
           "navigationMenuTriggerStyle",
           "toast",
           "toggleVariants",
+          "getProtocolIcon",
           "useFormField",
           "useSidebar",
         ],

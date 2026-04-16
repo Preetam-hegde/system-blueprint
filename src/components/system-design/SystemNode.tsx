@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps, useEdges } from '@xyflow/react';
-import type { SystemNodeData } from '@/store/useDesignStore';
-import { CATEGORY_COLORS, getNodeCatalogItem } from '@/types/system-design';
+import { useDesignStore, type SystemNodeData } from '@/store/useDesignStore';
+import { CATEGORY_COLORS } from '@/types/system-design';
 import {
   Server, Shield, Globe, Zap, Cloud,
   Database, HardDrive, Box, Cpu,
@@ -12,33 +12,37 @@ import {
   Webhook, Bot, GraduationCap, Layers, ArrowLeftRight,
   Laptop, FileText, BarChart3, GitBranch, Bell,
   ShieldAlert, Lock, UserCheck, KeyRound,
+  Hammer, Clock3, Inbox, Radar, ChartNoAxesColumn, Bug, Key, Route,
 } from 'lucide-react';
 import type { SystemNodeType } from '@/types/system-design';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import NodeInfoContent from './NodeInfoContent';
 
 const ICON_MAP: Record<SystemNodeType, React.ElementType> = {
   'server': Server, 'api-gateway': Shield, 'load-balancer': Globe,
-  'cdn': Zap, 'serverless': Cloud,
+  'cdn': Zap, 'serverless': Cloud, 'job-worker': Hammer, 'scheduler': Clock3,
   'sql-db': Database, 'nosql-db': HardDrive, 'vector-db': Box,
   'cache': Cpu, 'object-storage': HardDrive,
-  'data-lake': Layers, 'graph-db': GitBranch,
-  'message-queue': Mail, 'event-bus': Radio, 'stream-processor': Activity, 'webhook': Webhook,
+  'data-lake': Layers, 'graph-db': GitBranch, 'time-series-db': ChartNoAxesColumn,
+  'message-queue': Mail, 'event-bus': Radio, 'stream-processor': Activity, 'webhook': Webhook, 'dead-letter-queue': Inbox,
   'llm': Brain, 'rag-pipeline': Workflow, 'ml-model': Cog, 'embedding-service': Binary,
-  'ai-agent': Bot, 'fine-tuning': GraduationCap,
-  'dns': Wifi, 'firewall': ShieldCheck, 'rate-limiter': Gauge,
+  'ai-agent': Bot, 'fine-tuning': GraduationCap, 'model-router': Route,
+  'dns': Wifi, 'firewall': ShieldCheck, 'rate-limiter': Gauge, 'service-discovery': Radar,
   'service-mesh': ArrowLeftRight, 'reverse-proxy': Globe,
   'web-client': Monitor, 'mobile-client': Smartphone, 'iot-device': CircuitBoard, 'desktop-client': Laptop,
-  'log-aggregator': FileText, 'metrics-server': BarChart3, 'tracing': GitBranch, 'alerting': Bell,
-  'waf': ShieldAlert, 'vault': Lock, 'identity-provider': UserCheck, 'oauth-server': KeyRound,
+  'log-aggregator': FileText, 'metrics-server': BarChart3, 'tracing': GitBranch, 'alerting': Bell, 'error-tracker': Bug,
+  'waf': ShieldAlert, 'vault': Lock, 'identity-provider': UserCheck, 'oauth-server': KeyRound, 'kms': Key,
 };
 
 function SystemNodeComponent({ data, selected, id }: NodeProps) {
   const d = data as unknown as SystemNodeData;
   const Icon = ICON_MAP[d.nodeType] || Server;
-  const catalogItem = getNodeCatalogItem(d.nodeType);
   const color = CATEGORY_COLORS[d.category] || '221 83% 53%';
+  const { mode, replayTrace } = useDesignStore((state) => state.simulation);
   const loadPct = d.throughputLimit > 0 ? (d.currentLoad / d.throughputLimit) * 100 : 0;
+  const isFailed = Boolean(d.isFailed);
+  const isReplayMode = mode === 'replay';
+  const isReplayCurrent = isReplayMode && replayTrace.currentNodeId === id;
+  const isReplayPath = isReplayMode && replayTrace.pathNodeIds.includes(id);
+  const isReplayBottleneck = isReplayMode && replayTrace.bottleneckNodeIds.includes(id);
 
   const isOverloaded = d.isBottleneck;
   const isWarning = d.isSpof;
@@ -48,39 +52,82 @@ function SystemNodeComponent({ data, selected, id }: NodeProps) {
   const connCount = edges.filter((e) => e.source === id || e.target === id).length;
 
   // Status
-  const status = isOverloaded ? 'overloaded' : isWarning ? 'warning' : loadPct > 60 ? 'busy' : 'healthy';
-  const statusColor = status === 'overloaded' ? '0 84% 60%' : status === 'warning' ? '38 92% 50%' : status === 'busy' ? '38 92% 50%' : '142 71% 45%';
+  const status = isFailed
+    ? 'failed'
+    : isReplayCurrent
+      ? 'replay'
+      : isOverloaded
+        ? 'overloaded'
+        : isWarning
+          ? 'warning'
+          : loadPct > 60
+            ? 'busy'
+            : 'healthy';
+  const statusColor = status === 'failed'
+    ? '0 84% 60%'
+    : status === 'replay'
+      ? '221 83% 53%'
+    : status === 'overloaded'
+      ? '0 84% 60%'
+      : status === 'warning'
+        ? '38 92% 50%'
+        : status === 'busy'
+          ? '38 92% 50%'
+          : '142 71% 45%';
 
-  const borderColor = isOverloaded
+  const borderColor = isFailed
     ? 'hsl(0 84% 60%)'
-    : isWarning
-      ? 'hsl(38 92% 50%)'
-      : selected
+    : isReplayCurrent
+      ? 'hsl(var(--primary))'
+    : isOverloaded
+      ? 'hsl(0 84% 60%)'
+      : isReplayPath
         ? `hsl(${color})`
-        : 'hsl(var(--border))';
+        : isWarning
+          ? 'hsl(38 92% 50%)'
+          : selected
+            ? `hsl(${color})`
+            : 'hsl(var(--border))';
 
-  const shadowStyle = isOverloaded
-    ? '0 0 20px hsl(0 84% 60% / 0.4), 0 0 40px hsl(0 84% 60% / 0.1)'
-    : isWarning
-      ? '0 0 16px hsl(38 92% 50% / 0.3)'
-      : selected
-        ? `0 0 16px hsl(${color} / 0.25)`
-        : '0 2px 8px hsl(var(--foreground) / 0.04)';
+  const shadowStyle = isFailed
+    ? '0 0 20px hsl(0 84% 60% / 0.5), 0 0 40px hsl(0 84% 60% / 0.15)'
+    : isReplayCurrent
+      ? '0 0 22px hsl(var(--primary) / 0.35), 0 0 48px hsl(var(--primary) / 0.12)'
+    : isOverloaded
+      ? '0 0 20px hsl(0 84% 60% / 0.4), 0 0 40px hsl(0 84% 60% / 0.1)'
+      : isReplayPath
+        ? `0 0 18px hsl(${color} / 0.22)`
+        : isWarning
+          ? '0 0 16px hsl(38 92% 50% / 0.3)'
+          : selected
+            ? `0 0 16px hsl(${color} / 0.25)`
+            : '0 2px 8px hsl(var(--foreground) / 0.04)';
 
   const handleStyle = {
     background: `hsl(${color})`,
     borderColor: 'hsl(var(--card))',
   };
 
-  const nodeBody = (
+  return (
     <div
       className="relative rounded-xl border-2 bg-card px-4 py-3 min-w-[155px] hover:-translate-y-0.5 hover:shadow-lg"
       style={{ borderColor, boxShadow: shadowStyle }}
     >
+      {isFailed && <div className="absolute inset-0 rounded-xl bg-destructive/10 pointer-events-none" />}
       <Handle type="target" position={Position.Top} className="!w-3 !h-3 !border-2 !-top-1.5" style={handleStyle} />
       <Handle type="target" position={Position.Left} className="!w-3 !h-3 !border-2 !-left-1.5" style={handleStyle} />
 
       <div className="absolute top-2 right-2 flex items-center gap-1">
+        {isReplayCurrent && (
+          <span className="rounded bg-primary/10 px-1 py-0.5 text-[8px] font-black tracking-[0.18em] text-primary">
+            NOW
+          </span>
+        )}
+        {!isReplayCurrent && isReplayPath && (
+          <span className="rounded bg-primary/10 px-1 py-0.5 text-[8px] font-bold text-primary/80">
+            PATH
+          </span>
+        )}
         {connCount > 0 && (
           <span className="text-[8px] font-mono text-muted-foreground bg-muted rounded px-1">
             {connCount}
@@ -147,22 +194,15 @@ function SystemNodeComponent({ data, selected, id }: NodeProps) {
         </div>
       )}
 
+      {isReplayBottleneck && !isFailed && (
+        <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-600 dark:text-amber-400">
+          Replay bottleneck
+        </div>
+      )}
+
       <Handle type="source" position={Position.Bottom} className="!w-3 !h-3 !border-2 !-bottom-1.5" style={handleStyle} />
       <Handle type="source" position={Position.Right} className="!w-3 !h-3 !border-2 !-right-1.5" style={handleStyle} />
     </div>
-  );
-
-  if (!catalogItem) return nodeBody;
-
-  return (
-    <HoverCard openDelay={150}>
-      <HoverCardTrigger asChild>
-        {nodeBody}
-      </HoverCardTrigger>
-      <HoverCardContent side="right" align="start" className="w-72">
-        <NodeInfoContent item={catalogItem} compact />
-      </HoverCardContent>
-    </HoverCard>
   );
 }
 

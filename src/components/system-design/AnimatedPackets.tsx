@@ -8,6 +8,7 @@ interface Packet {
   id: string;
   edgeId: string;
   color: string;
+  speedScale: number;
   progress: number;
   sourceX: number;
   sourceY: number;
@@ -54,8 +55,15 @@ export default function AnimatedPackets() {
       return;
     }
 
+    const failed = new Set(simulation.failedNodeIds);
+    const activeEdges = edges.filter((e) => !failed.has(e.source) && !failed.has(e.target));
+    if (activeEdges.length === 0) {
+      setPackets([]);
+      return;
+    }
+
     const interval = setInterval(() => {
-      const randomEdge = edges[Math.floor(Math.random() * edges.length)];
+      const randomEdge = activeEdges[Math.floor(Math.random() * activeEdges.length)];
       const sourcePos = getNodeCenter(randomEdge.source);
       const targetPos = getNodeCenter(randomEdge.target);
       if (!sourcePos || !targetPos) return;
@@ -65,6 +73,21 @@ export default function AnimatedPackets() {
       const protocol = edgeData.protocol || 'HTTP';
       const protocolInfo = PROTOCOL_KNOWLEDGE[protocol as ConnectionProtocol];
       const color = protocolInfo?.color || '221 83% 53%';
+      const sourceNode = nodes.find((node) => node.id === randomEdge.source);
+      const targetNode = nodes.find((node) => node.id === randomEdge.target);
+      const sourceData = sourceNode?.data as SystemNodeData | undefined;
+      const targetData = targetNode?.data as SystemNodeData | undefined;
+      const touchesLatencyRegion = simulation.scenario.type === 'regional-latency'
+        && simulation.scenario.region
+        && (sourceData?.region === simulation.scenario.region || targetData?.region === simulation.scenario.region);
+      const touchesBacklog = simulation.scenario.type === 'queue-backlog'
+        && Boolean(simulation.scenario.queueNodeIds?.includes(randomEdge.source) || simulation.scenario.queueNodeIds?.includes(randomEdge.target));
+      const regionalSpeedScale = touchesLatencyRegion
+        ? Math.max(0.35, 1 - (simulation.scenario.latencyMs ?? 150) / 500)
+        : 1;
+      const backlogSpeedScale = touchesBacklog
+        ? Math.max(0.4, 1 - (simulation.scenario.backlogSeverity ?? 65) / 120)
+        : 1;
 
       setPackets((prev) => [
         ...prev.slice(-40),
@@ -72,6 +95,7 @@ export default function AnimatedPackets() {
           id: `pkt-${Date.now()}-${Math.random()}`,
           edgeId: randomEdge.id,
           color,
+          speedScale: regionalSpeedScale * backlogSpeedScale,
           progress: 0,
           sourceX: sourcePos.x,
           sourceY: sourcePos.y,
@@ -83,7 +107,7 @@ export default function AnimatedPackets() {
     }, Math.max(60, 600 / simulation.speed / Math.max(simulation.rps / 50, 1)));
 
     return () => clearInterval(interval);
-  }, [simulation.running, simulation.speed, simulation.rps, edges, nodes, getNodeCenter]);
+  }, [simulation.running, simulation.speed, simulation.rps, simulation.failedNodeIds, simulation.scenario, edges, nodes, getNodeCenter]);
 
   // Animate packets
   useEffect(() => {
@@ -95,7 +119,7 @@ export default function AnimatedPackets() {
           .map((p) => ({
             ...p,
             trail: [...p.trail.slice(-4), p.progress],
-            progress: p.progress + 0.018 * simulation.speed,
+            progress: p.progress + 0.018 * simulation.speed * p.speedScale * (simulation.mode === 'replay' ? 0.75 : 1),
           }))
           .filter((p) => p.progress <= 1)
       );
@@ -103,7 +127,7 @@ export default function AnimatedPackets() {
     };
     let rafRef = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(rafRef);
-  }, [simulation.running, simulation.speed]);
+  }, [simulation.running, simulation.speed, simulation.mode]);
 
   if (!simulation.running || packets.length === 0) return null;
 

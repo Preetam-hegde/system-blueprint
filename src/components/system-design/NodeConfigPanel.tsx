@@ -1,5 +1,5 @@
 import { useDesignStore } from '@/store/useDesignStore';
-import { getNodeCatalogItem } from '@/types/system-design';
+import { getNodeCatalogItem, PROTOCOL_KNOWLEDGE } from '@/types/system-design';
 import type { EdgeConfig, ConnectionProtocol } from '@/types/system-design';
 import type { SystemNodeData } from '@/store/useDesignStore';
 import { CATEGORY_COLORS } from '@/types/system-design';
@@ -12,9 +12,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Trash2, Copy, Settings2, Network, PanelRightOpen } from 'lucide-react';
+import { X, Trash2, Copy, Settings2, Network, Info } from 'lucide-react';
 import ProtocolInfoPopover from './ProtocolInfoPopover';
 import NodeInfoContent from './NodeInfoContent';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import ProtocolBadge from './ProtocolBadge';
+import ProtocolInfoContent from './ProtocolInfoContent';
 
 const REGIONS = ['us-east-1', 'us-west-2', 'eu-west-1', 'eu-central-1', 'ap-southeast-1', 'ap-northeast-1'];
 const PROTOCOLS: ConnectionProtocol[] = ['HTTP', 'gRPC', 'WebSocket', 'TCP', 'Pub/Sub', 'GraphQL', 'MQTT', 'AMQP'];
@@ -30,6 +33,7 @@ export default function NodeConfigPanel() {
 
   if (selectedEdge) {
     const d = (selectedEdge.data || {}) as unknown as EdgeConfig;
+    const selectedProtocol = d.protocol || 'HTTP';
     return (
       <div className="w-72 border-l border-border glass h-full overflow-y-auto animate-slide-in-right">
         <div className="p-3 border-b border-border flex items-center justify-between">
@@ -46,14 +50,24 @@ export default function NodeConfigPanel() {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-medium">Protocol</Label>
-              <ProtocolInfoPopover protocol={d.protocol || 'HTTP'} />
+              <ProtocolInfoPopover protocol={selectedProtocol} />
             </div>
-            <Select value={d.protocol || 'HTTP'} onValueChange={(v) => updateEdgeConfig(selectedEdge.id, { protocol: v as ConnectionProtocol })}>
+            <Select value={selectedProtocol} onValueChange={(v) => updateEdgeConfig(selectedEdge.id, { protocol: v as ConnectionProtocol })}>
               <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {PROTOCOLS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                {PROTOCOLS.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    <div className="flex items-center gap-2">
+                      <ProtocolBadge protocol={p} compact />
+                      <span className="text-[10px] text-muted-foreground">{PROTOCOL_KNOWLEDGE[p].mode}</span>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="rounded-lg border border-border/70 bg-card/60 p-3">
+            <ProtocolInfoContent protocol={selectedProtocol} compact />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">Label</Label>
@@ -95,9 +109,27 @@ export default function NodeConfigPanel() {
           </div>
           <div>
             <h3 className="text-sm font-bold text-foreground">{d.label}</h3>
-            <Badge variant="secondary" className="text-[9px] h-4 px-1 mt-0.5" style={{ color: `hsl(${color})` }}>
-              {d.nodeType}
-            </Badge>
+            <div className="mt-0.5 flex items-center gap-1.5">
+              <Badge variant="secondary" className="text-[9px] h-4 px-1" style={{ color: `hsl(${color})` }}>
+                {d.nodeType}
+              </Badge>
+              {catalogItem && (
+                <HoverCard openDelay={120}>
+                  <HoverCardTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      aria-label={`Show details for ${catalogItem.label}`}
+                    >
+                      <Info className="h-3 w-3" />
+                    </button>
+                  </HoverCardTrigger>
+                  <HoverCardContent side="bottom" align="start" className="w-72">
+                    <NodeInfoContent item={catalogItem} compact />
+                  </HoverCardContent>
+                </HoverCard>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex gap-1">
@@ -113,14 +145,7 @@ export default function NodeConfigPanel() {
             <Input className="h-8 text-xs" value={d.label} onChange={(e) => updateNodeConfig(selectedNodeId!, { label: e.target.value })} />
           </div>
 
-          {catalogItem && (
-            <>
-              <div className="rounded-lg border border-border/70 bg-card/60 p-3">
-                <NodeInfoContent item={catalogItem} />
-              </div>
-              <Separator />
-            </>
-          )}
+          <Separator />
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
@@ -145,6 +170,18 @@ export default function NodeConfigPanel() {
               <Label className="text-xs font-medium">Memory (GB)</Label>
               <Input type="number" min={1} className="h-8 text-xs" value={d.memory} onChange={(e) => updateNodeConfig(selectedNodeId!, { memory: +e.target.value })} />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium">Replica Cost ($/hr)</Label>
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              className="h-8 text-xs"
+              value={d.hourlyCost ?? 0}
+              onChange={(e) => updateNodeConfig(selectedNodeId!, { hourlyCost: +e.target.value || 0 })}
+            />
           </div>
 
           <Separator />
@@ -211,7 +248,7 @@ export default function NodeConfigPanel() {
                         <div key={e.id} className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-accent/50 rounded px-2 py-1">
                           <span className="font-medium text-foreground">{getNodeLabel(sourceNode?.data)}</span>
                           <span>via</span>
-                          <Badge variant="outline" className="text-[9px] h-4 px-1">{ed.protocol || 'HTTP'}</Badge>
+                          <ProtocolBadge protocol={ed.protocol || 'HTTP'} compact />
                         </div>
                       );
                     })}
@@ -227,7 +264,7 @@ export default function NodeConfigPanel() {
                         <div key={e.id} className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-accent/50 rounded px-2 py-1">
                           <span className="font-medium text-foreground">{getNodeLabel(targetNode?.data)}</span>
                           <span>via</span>
-                          <Badge variant="outline" className="text-[9px] h-4 px-1">{ed.protocol || 'HTTP'}</Badge>
+                          <ProtocolBadge protocol={ed.protocol || 'HTTP'} compact />
                         </div>
                       );
                     })}

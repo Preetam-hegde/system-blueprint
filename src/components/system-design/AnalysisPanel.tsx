@@ -1,5 +1,5 @@
 import { useDesignStore } from '@/store/useDesignStore';
-import { AlertTriangle, AlertCircle, Clock, CheckCircle2, ChevronUp, ChevronDown } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Clock, CheckCircle2, ChevronUp, ChevronDown, Flame, Inbox } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 
@@ -7,6 +7,8 @@ const ICON_MAP = {
   bottleneck: AlertCircle,
   spof: AlertTriangle,
   latency: Clock,
+  failure: Flame,
+  backlog: Inbox,
 };
 
 export default function AnalysisPanel() {
@@ -15,6 +17,8 @@ export default function AnalysisPanel() {
 
   const criticalCount = warnings.filter((w) => w.severity === 'critical').length;
   const warningCount = warnings.length - criticalCount;
+  const replayMode = simulation.mode === 'replay';
+  const replayTrace = simulation.replayTrace;
 
   return (
     <div className="border-t border-border glass shrink-0">
@@ -55,11 +59,49 @@ export default function AnalysisPanel() {
               Live
             </Badge>
           )}
+          {replayMode && (
+            <Badge variant="outline" className="text-[9px] h-4 px-1.5">
+              Replay {simulation.step}/{simulation.maxSteps}
+            </Badge>
+          )}
+          {simulation.failedNodeIds.length > 0 && (
+            <Badge variant="destructive" className="text-[9px] h-4 px-1.5">
+              {simulation.failedNodeIds.length} failed
+            </Badge>
+          )}
+          {simulation.scenario.type !== 'none' && (
+            <Badge variant="secondary" className="text-[9px] h-4 px-1.5">
+              {simulation.scenario.type === 'zone-outage'
+                ? 'Zone outage'
+                : simulation.scenario.type === 'regional-latency'
+                  ? 'Regional latency'
+                  : 'Queue backlog'}
+            </Badge>
+          )}
           {warnings.length > 0 && (
             expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />
           )}
         </div>
       </button>
+      {replayMode && (
+        <div className="border-t border-border/70 bg-muted/20 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+            <Badge variant="outline" className="h-5 text-[9px]">
+              Path {replayTrace.pathNodeIds.length || 0} nodes
+            </Badge>
+            <Badge variant="outline" className="h-5 text-[9px]">
+              Latency {replayTrace.accumulatedLatencyMs}/{replayTrace.totalLatencyMs}ms
+            </Badge>
+            <Badge variant="outline" className="h-5 text-[9px]">
+              Retries {replayTrace.estimatedRetries}
+            </Badge>
+            <Badge variant="outline" className="h-5 text-[9px]">
+              Bottlenecks {replayTrace.bottleneckNodeIds.length}
+            </Badge>
+            <span>{replayTrace.blockedReason ?? 'Replay path is highlighted directly on the diagram.'}</span>
+          </div>
+        </div>
+      )}
       {expanded && warnings.length > 0 && (
         <div className="max-h-40 overflow-y-auto px-3 pb-2 space-y-1 stagger-children animate-slide-up">
           {warnings.map((w) => {
