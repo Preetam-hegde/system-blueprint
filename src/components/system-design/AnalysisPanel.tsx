@@ -1,5 +1,5 @@
 import { useDesignStore } from '@/store/useDesignStore';
-import { AlertTriangle, AlertCircle, Clock, CheckCircle2, ChevronUp, ChevronDown, Flame, Inbox } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Clock, CheckCircle2, ChevronUp, ChevronDown, Flame, Inbox, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 
@@ -50,6 +50,12 @@ export default function AnalysisPanel() {
           )}
         </div>
         <div className="ml-auto flex items-center gap-3 text-[10px] text-muted-foreground">
+          <span className="hidden lg:inline-flex items-center gap-1">
+            <span>made with</span>
+            <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
+            <span>by preetam-ptwo</span>
+          </span>
+          <span className="hidden lg:inline opacity-40">·</span>
           <span>{nodes.length} nodes</span>
           <span className="opacity-40">·</span>
           <span>{edges.length} connections</span>

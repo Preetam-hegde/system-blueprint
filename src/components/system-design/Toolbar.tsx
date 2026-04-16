@@ -14,12 +14,13 @@ import {
 import {
   Play, Pause, Undo2, Redo2,
   Download, Upload, Image, Link, Trash2, ChevronDown,
-  Boxes, LayoutGrid, SkipForward, RotateCcw, SlidersHorizontal,
+  Boxes, LayoutGrid, SkipForward, RotateCcw, SlidersHorizontal, UserRound,
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useRef, useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { SavedSimulationPreset, SimulationScenarioType } from '@/types/system-design';
 import SettingsDialog from './SettingsDialog';
@@ -259,10 +260,24 @@ export default function Toolbar() {
     <div className="h-12 border-b border-border glass flex items-center px-4 gap-3 shrink-0 z-20">
       {/* Brand */}
       <div className="flex items-center gap-2 border-r border-border pr-3 mr-1">
-        <div className="p-1 rounded-md bg-primary/10">
-          <Boxes className="w-4 h-4 text-primary" />
-        </div>
-        <span className="text-sm font-bold tracking-tight text-foreground hidden sm:inline">System Designer</span>
+        <RouterLink to="/" className="flex items-center gap-2">
+          <div className="p-1 rounded-md bg-primary/10">
+            <Boxes className="w-4 h-4 text-primary" />
+          </div>
+          <span className="text-sm font-bold tracking-tight text-foreground hidden sm:inline">System Designer</span>
+        </RouterLink>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <RouterLink
+              to="/about"
+              className="hidden sm:inline-flex h-8 items-center gap-1.5 rounded-full border border-border/80 px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
+            >
+              <UserRound className="h-3.5 w-3.5" />
+              About
+            </RouterLink>
+          </TooltipTrigger>
+          <TooltipContent>About Preetam Hegde and this project</TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Undo/Redo */}
@@ -750,24 +765,29 @@ export default function Toolbar() {
           </DialogContent>
         </Dialog>
 
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setImportOpen(true)}>
+              <Upload className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Import JSON</TooltipContent>
+        </Tooltip>
+
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-xs">
-                  <Upload className="w-4 h-4" />
-                  <span className="hidden sm:inline">File</span>
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Export</span>
                   <ChevronDown className="w-3 h-3 opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
             </TooltipTrigger>
-            <TooltipContent>Import and export</TooltipContent>
+            <TooltipContent>Export and share</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onClick={() => setImportOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" />
-              Import JSON
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleExportJSON}>
               <Download className="mr-2 h-4 w-4" />
               Export JSON

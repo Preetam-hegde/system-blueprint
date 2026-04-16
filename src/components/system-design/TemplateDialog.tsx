@@ -2,6 +2,7 @@ import type { ElementType } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   LayoutTemplate,
@@ -516,11 +517,11 @@ export default function TemplateDialog({ trigger = 'default' }: TemplateDialogPr
         </TooltipTrigger>
         <TooltipContent side="right">Browse interview system design templates</TooltipContent>
       </Tooltip>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-4xl">
+        <DialogHeader className="border-b border-border px-5 py-4 pr-12">
           <DialogTitle>Architecture Templates</DialogTitle>
         </DialogHeader>
-        <div className="mt-2">
+        <div className="border-b border-border bg-background/95 px-5 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
           <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Filter By Topic</div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <Button
@@ -546,48 +547,53 @@ export default function TemplateDialog({ trigger = 'default' }: TemplateDialogPr
             ))}
           </div>
         </div>
-        <div className="grid gap-2 mt-2">
-          {visibleTemplates.map((t) => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                onClick={() => loadTemplate(t)}
-                className="flex items-start gap-3 p-3 rounded-lg border border-border bg-background hover:bg-accent/50 hover:border-primary/30 transition-all text-left group"
-              >
-                <div
-                  className="p-2 rounded-lg shrink-0 transition-colors"
-                  style={{ backgroundColor: `hsl(${t.color} / 0.12)` }}
+        <ScrollArea className="max-h-[min(72vh,760px)]">
+          <div className="grid gap-3 p-5 md:grid-cols-2">
+            {visibleTemplates.map((t) => {
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => loadTemplate(t)}
+                  className="flex min-h-[174px] items-start gap-3 rounded-xl border border-border bg-background p-4 text-left transition-all group hover:border-primary/30 hover:bg-accent/40 hover:shadow-sm"
                 >
-                  <Icon className="w-5 h-5" style={{ color: `hsl(${t.color})` }} />
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <div className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{t.name}</div>
-                    <Badge variant={t.rating === 'advanced' ? 'default' : 'secondary'} className="h-5 px-1.5 text-[10px]">
-                      {t.rating === 'advanced' ? 'Advanced' : 'Good'}
-                    </Badge>
+                  <div
+                    className="mt-0.5 rounded-xl p-2.5 shrink-0 transition-colors"
+                    style={{ backgroundColor: `hsl(${t.color} / 0.12)` }}
+                  >
+                    <Icon className="h-5 w-5" style={{ color: `hsl(${t.color})` }} />
                   </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{t.description}</div>
-                  <div className="text-[10px] text-muted-foreground mt-1">Focus: {t.focus}</div>
-                  <div className="mt-1.5 flex flex-wrap gap-1">
-                    {t.tags.map((tag) => (
-                      <Badge key={tag} variant="outline" className="h-5 px-1.5 text-[10px]">
-                        {tag}
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="text-sm font-medium text-foreground transition-colors group-hover:text-primary">{t.name}</div>
+                      <Badge variant={t.rating === 'advanced' ? 'default' : 'secondary'} className="h-5 px-1.5 text-[10px]">
+                        {t.rating === 'advanced' ? 'Advanced' : 'Good'}
                       </Badge>
-                    ))}
+                    </div>
+                    <div className="mt-1 text-xs leading-5 text-muted-foreground">{t.description}</div>
+                    <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                      Focus
+                    </div>
+                    <div className="mt-1 text-[11px] font-medium text-foreground/85">{t.focus}</div>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {t.tags.map((tag) => (
+                        <Badge key={tag} variant="outline" className="h-5 px-1.5 text-[10px]">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </button>
-            );
-          })}
-          {visibleTemplates.length === 0 && (
-            <div className="rounded-lg border border-dashed border-border p-4 text-center">
-              <div className="text-sm font-medium text-foreground">No templates for `{activeTag}`</div>
-              <div className="text-xs text-muted-foreground mt-1">Choose another topic filter.</div>
-            </div>
-          )}
-        </div>
+                </button>
+              );
+            })}
+            {visibleTemplates.length === 0 && (
+              <div className="rounded-xl border border-dashed border-border p-6 text-center md:col-span-2">
+                <div className="text-sm font-medium text-foreground">No templates for `{activeTag}`</div>
+                <div className="mt-1 text-xs text-muted-foreground">Choose another topic filter.</div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
