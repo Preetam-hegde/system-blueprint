@@ -23,7 +23,11 @@ const REGIONS = ['us-east-1', 'us-west-2', 'eu-west-1', 'eu-central-1', 'ap-sout
 const PROTOCOLS: ConnectionProtocol[] = ['HTTP', 'gRPC', 'WebSocket', 'TCP', 'Pub/Sub', 'GraphQL', 'MQTT', 'AMQP'];
 const getNodeLabel = (data: unknown) => (data as SystemNodeData | undefined)?.label ?? 'Unknown';
 
-export default function NodeConfigPanel() {
+interface NodeConfigPanelProps {
+  mobile?: boolean;
+}
+
+export default function NodeConfigPanel({ mobile = false }: NodeConfigPanelProps) {
   const { nodes, edges, selectedNodeId, selectedEdgeId, selectNode, selectEdge, updateNodeConfig, updateEdgeConfig, deleteSelected, duplicateNode } = useDesignStore();
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
@@ -35,7 +39,10 @@ export default function NodeConfigPanel() {
     const d = (selectedEdge.data || {}) as unknown as EdgeConfig;
     const selectedProtocol = d.protocol || 'HTTP';
     return (
-      <div className="w-72 border-l border-border glass h-full overflow-y-auto animate-slide-in-right">
+      <div className={mobile
+        ? 'absolute inset-y-0 right-0 z-30 w-[min(22rem,92vw)] border-l border-border glass h-full overflow-y-auto animate-slide-in-right shadow-2xl'
+        : 'w-72 border-l border-border glass h-full overflow-y-auto animate-slide-in-right'}
+      >
         <div className="p-3 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Network className="w-4 h-4 text-primary" />
@@ -101,7 +108,10 @@ export default function NodeConfigPanel() {
   const outgoingEdges = edges.filter((e) => e.source === selectedNodeId);
 
   return (
-    <div className="w-72 border-l border-border glass h-full flex flex-col animate-slide-in-right">
+    <div className={mobile
+      ? 'absolute inset-y-0 right-0 z-30 w-[min(22rem,92vw)] border-l border-border glass h-full flex flex-col animate-slide-in-right shadow-2xl'
+      : 'w-72 border-l border-border glass h-full flex flex-col animate-slide-in-right'}
+    >
       <div className="p-3 border-b border-border flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <div className="p-1 rounded" style={{ backgroundColor: `hsl(${color} / 0.15)` }}>

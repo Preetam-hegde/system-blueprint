@@ -63,12 +63,12 @@ function Row({
   children: ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 px-4 py-3">
+    <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
       <div className="min-w-0 space-y-1">
         <Label className="text-sm font-medium text-foreground">{title}</Label>
         <p className="text-xs leading-5 text-muted-foreground">{description}</p>
       </div>
-      <div className="shrink-0">{children}</div>
+      <div className="shrink-0 self-start sm:self-auto">{children}</div>
     </div>
   );
 }
@@ -133,15 +133,15 @@ export default function SettingsDialog() {
       </Tooltip>
 
       <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-xl">
-        <DialogHeader className="border-b border-border px-5 py-4 pr-14">
-          <div className="flex items-start justify-between gap-4">
+        <DialogHeader className="border-b border-border px-4 py-4 pr-14 sm:px-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div className="space-y-1">
               <DialogTitle className="text-base font-semibold">Settings</DialogTitle>
               <p className="text-sm text-muted-foreground">
                 Workspace preferences for appearance, canvas behavior, and simulation.
               </p>
             </div>
-            <Button type="button" variant="ghost" size="sm" className="h-8 shrink-0 px-2.5 text-xs" onClick={resetDefaults}>
+            <Button type="button" variant="ghost" size="sm" className="h-8 shrink-0 self-start px-2.5 text-xs" onClick={resetDefaults}>
               <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
               Reset
             </Button>
@@ -149,13 +149,13 @@ export default function SettingsDialog() {
         </DialogHeader>
 
         <ScrollArea className="max-h-[70vh]">
-          <div className="space-y-6 px-5 py-5">
+          <div className="space-y-6 px-4 py-5 sm:px-5">
             <Section
               title="Appearance"
               description="Set how the workspace should look while editing diagrams."
             >
               <div className="p-3">
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid gap-2 sm:grid-cols-3">
                   {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
                     <button
                       key={value}
@@ -222,7 +222,7 @@ export default function SettingsDialog() {
               </Row>
               <Separator />
               <div className="px-4 py-3">
-                <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <div className="space-y-1">
                     <Label className="text-sm font-medium text-foreground">Packet density</Label>
                     <p className="text-xs leading-5 text-muted-foreground">

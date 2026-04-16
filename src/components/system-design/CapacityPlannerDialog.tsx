@@ -36,13 +36,13 @@ export default function CapacityPlannerDialog() {
         </TooltipTrigger>
         <TooltipContent>Capacity planner</TooltipContent>
       </Tooltip>
-      <DialogContent className="max-w-4xl">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl gap-0 overflow-hidden p-0">
+        <DialogHeader className="border-b border-border px-4 py-4 pr-12 sm:px-5">
           <DialogTitle>Capacity Planner</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="rounded-xl border border-border p-4 space-y-4">
+        <div className="max-h-[78vh] space-y-4 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
+          <div className="space-y-4 rounded-xl border border-border p-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Long-term growth</span>
@@ -75,7 +75,7 @@ export default function CapacityPlannerDialog() {
               Combined what-if multiplier: <span className="font-semibold text-foreground">{plan.totalProjectedMultiplier.toFixed(2)}x</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+            <div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-2">
               <div className="rounded-lg border border-border p-2">
                 Current hourly cost: <span className="font-semibold text-foreground">{usd.format(plan.totalHourlyCost)}</span>
               </div>
@@ -85,7 +85,7 @@ export default function CapacityPlannerDialog() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-border overflow-hidden">
+          <div className="hidden overflow-hidden rounded-xl border border-border md:block">
             <div className="grid grid-cols-12 gap-2 bg-muted/50 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               <div className="col-span-3">Node</div>
               <div className="col-span-2">RPS now</div>
@@ -122,7 +122,42 @@ export default function CapacityPlannerDialog() {
             </div>
           </div>
 
-          <div className="text-xs text-muted-foreground">
+          <div className="space-y-2 md:hidden">
+            {plan.nodes.map((node) => (
+              <div key={node.nodeId} className="rounded-xl border border-border p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-foreground">{node.label}</div>
+                    <div className="mt-1 text-[11px] text-muted-foreground">
+                      {Math.round(node.currentRps)} now · {Math.round(node.projectedRps)} projected
+                    </div>
+                  </div>
+                  <Badge
+                    variant={node.projectedUtilizationPct >= 90 ? 'destructive' : 'secondary'}
+                    className={node.projectedUtilizationPct >= 70 && node.projectedUtilizationPct < 90 ? 'text-amber-600 dark:text-amber-400' : undefined}
+                  >
+                    {node.projectedUtilizationPct >= 90 ? 'High' : node.projectedUtilizationPct >= 70 ? 'Med' : 'Low'}
+                  </Badge>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div className="rounded-lg border border-border px-2 py-1.5">
+                    Replicas: <span className="font-semibold text-foreground">{node.replicas}</span>
+                  </div>
+                  <div className="rounded-lg border border-border px-2 py-1.5">
+                    Needed: <span className="font-semibold text-foreground">{node.requiredReplicas}</span>
+                  </div>
+                  <div className="rounded-lg border border-border px-2 py-1.5">
+                    Utilization: <span className="font-semibold text-foreground">{Math.round(node.projectedUtilizationPct)}%</span>
+                  </div>
+                  <div className="rounded-lg border border-border px-2 py-1.5">
+                    Cost: <span className="font-semibold text-foreground">{usd.format(node.projectedHourlyCost)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-xs leading-5 text-muted-foreground">
             Nodes needing scale-up: <span className="font-semibold text-foreground">{plan.nodes.filter((n) => n.requiredReplicas > n.replicas).length}</span>
             {' · '}
             Bottlenecks if unchanged: <span className="font-semibold text-foreground">{plan.projectedBottlenecks}</span>

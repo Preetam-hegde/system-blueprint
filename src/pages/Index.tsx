@@ -29,11 +29,13 @@ const edgeTypes = { systemEdge: SystemEdgeComponent };
 export default function Index() {
   const {
     nodes, edges, onNodesChange, onEdgesChange, onConnect,
-    addNode, selectNode, selectEdge, importJSON,
+    addNode, selectNode, selectEdge, importJSON, selectedNodeId, selectedEdgeId,
   } = useDesignStore();
 
   const reactFlowRef = useRef<ReactFlowInstance | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement | null>(null);
   const [paletteCollapsed, setPaletteCollapsed] = useState(false);
+  const [isNarrowViewport, setIsNarrowViewport] = useState(() => window.innerWidth < 1024);
   const [showMinimap, setShowMinimap] = useState(() => localStorage.getItem('sd-minimap') !== 'false');
   const [showGrid, setShowGrid] = useState(() => localStorage.getItem('sd-grid') !== 'false');
   const [snapToGrid, setSnapToGrid] = useState(() => localStorage.getItem('sd-snap') === 'true');
@@ -60,6 +62,19 @@ export default function Index() {
     window.addEventListener('sd-settings-change', handler);
     return () => window.removeEventListener('sd-settings-change', handler);
   }, []);
+
+  useEffect(() => {
+    const updateViewport = () => setIsNarrowViewport(window.innerWidth < 1024);
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
+
+  useEffect(() => {
+    if (isNarrowViewport) {
+      setPaletteCollapsed(true);
+    }
+  }, [isNarrowViewport]);
 
   // Load from URL params
   useEffect(() => {
@@ -120,13 +135,50 @@ export default function Index() {
     [addNode]
   );
 
+  const handlePaletteSelect = useCallback((type: SystemNodeType) => {
+    const container = canvasContainerRef.current;
+    const flow = reactFlowRef.current;
+    if (!container || !flow) return;
+
+    const bounds = container.getBoundingClientRect();
+    const row = Math.floor(nodes.length / 3);
+    const column = nodes.length % 3;
+    const position = flow.screenToFlowPosition({
+      x: bounds.left + (bounds.width * 0.5) + ((column - 1) * 96),
+      y: bounds.top + (bounds.height * 0.4) + (row * 72),
+    });
+
+    addNode(type, position);
+    setPaletteCollapsed(true);
+  }, [addNode, nodes.length]);
+
+  const showMobileBackdrop = isNarrowViewport && (!paletteCollapsed || Boolean(selectedNodeId || selectedEdgeId));
+  const dismissMobilePanels = () => {
+    setPaletteCollapsed(true);
+    selectNode(null);
+    selectEdge(null);
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">
       <Toolbar />
       <div className="flex flex-1 min-h-0">
-        <ComponentPalette collapsed={paletteCollapsed} onToggle={() => setPaletteCollapsed(!paletteCollapsed)} />
-        <div className="flex-1 relative">
-          {nodes.length === 0 && <EmptyCanvas />}
+        <ComponentPalette
+          collapsed={paletteCollapsed}
+          mobile={isNarrowViewport}
+          onToggle={() => setPaletteCollapsed(!paletteCollapsed)}
+          onSelectComponent={isNarrowViewport ? handlePaletteSelect : undefined}
+        />
+        <div ref={canvasContainerRef} className="flex-1 relative">
+          {showMobileBackdrop && (
+            <button
+              type="button"
+              aria-label="Dismiss mobile panels"
+              className="absolute inset-0 z-20 bg-background/55 backdrop-blur-[2px] lg:hidden"
+              onClick={dismissMobilePanels}
+            />
+          )}
+          {nodes.length === 0 && <EmptyCanvas mobile={isNarrowViewport} />}
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -152,7 +204,7 @@ export default function Index() {
               <Background variant={BackgroundVariant.Dots} gap={24} size={1} className="!bg-background" color="hsl(var(--border))" />
             )}
             <Controls className="!bg-card/90 !backdrop-blur-md !border-border !shadow-lg !rounded-xl" />
-            {showMinimap && (
+            {showMinimap && !isNarrowViewport && (
               <MiniMap
                 className="!bg-card/90 !backdrop-blur-md !border-border !rounded-xl !shadow-lg"
                 maskColor="hsl(var(--background) / 0.7)"
@@ -167,7 +219,7 @@ export default function Index() {
             <AnimatedPackets />
           </ReactFlow>
         </div>
-        <NodeConfigPanel />
+        <NodeConfigPanel mobile={isNarrowViewport} />
       </div>
       <AnalysisPanel />
       <KeyboardShortcuts open={showShortcuts} onOpenChange={setShowShortcuts} />

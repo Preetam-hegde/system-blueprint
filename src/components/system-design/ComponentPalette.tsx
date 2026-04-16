@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import NodeInfoContent from './NodeInfoContent';
 import TemplateDialog from './TemplateDialog';
 
@@ -62,10 +62,12 @@ const addRecent = (type: SystemNodeType) => {
 
 interface Props {
   collapsed: boolean;
+  mobile?: boolean;
   onToggle: () => void;
+  onSelectComponent?: (type: SystemNodeType) => void;
 }
 
-export default function ComponentPalette({ collapsed, onToggle }: Props) {
+export default function ComponentPalette({ collapsed, mobile = false, onToggle, onSelectComponent }: Props) {
   const [search, setSearch] = useState('');
   const [recent, setRecent] = useState<SystemNodeType[]>(getRecent);
 
@@ -75,6 +77,12 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
     addRecent(nodeType);
     setRecent(getRecent());
   }, []);
+
+  const handleSelect = useCallback((nodeType: SystemNodeType) => {
+    addRecent(nodeType);
+    setRecent(getRecent());
+    onSelectComponent?.(nodeType);
+  }, [onSelectComponent]);
 
   const filteredCatalog = search
     ? NODE_CATALOG.filter((n) =>
@@ -86,16 +94,24 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
 
   if (collapsed) {
     return (
-      <div className="w-12 border-r border-border glass h-full flex flex-col items-center py-2 gap-1">
+      <div className={mobile
+        ? 'absolute left-3 top-3 z-30 flex flex-col items-center gap-1'
+        : 'w-12 border-r border-border glass h-full flex flex-col items-center py-2 gap-1'}
+      >
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 mb-2" onClick={onToggle}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={mobile ? 'h-10 w-10 rounded-xl border border-border bg-background/90 shadow-lg backdrop-blur mb-1' : 'h-8 w-8 mb-2'}
+              onClick={onToggle}
+            >
               <PanelLeft className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right">Expand component sidebar</TooltipContent>
         </Tooltip>
-        {categories.map((cat) => {
+        {!mobile && categories.map((cat) => {
           const color = CATEGORY_COLORS[cat];
           const items = NODE_CATALOG.filter((n) => n.category === cat);
           return (
@@ -122,12 +138,17 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
   }
 
   return (
-    <div className="w-60 border-r border-border glass h-full overflow-y-auto flex flex-col">
+    <div className={mobile
+      ? 'absolute inset-y-0 left-0 z-30 w-[min(18rem,88vw)] border-r border-border glass h-full overflow-y-auto flex flex-col shadow-2xl'
+      : 'w-60 border-r border-border glass h-full overflow-y-auto flex flex-col'}
+    >
       <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-foreground tracking-tight">Components</h2>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Drag & drop onto canvas</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {mobile ? 'Tap to add on canvas' : 'Drag & drop onto canvas'}
+            </p>
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -162,19 +183,33 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
                 if (!item) return null;
                 const Icon = ICON_MAP[item.type];
                 const color = CATEGORY_COLORS[item.category];
+                const content = (
+                  <div
+                    draggable={!mobile}
+                    onDragStart={(e) => onDragStart(e, item.type)}
+                    onClick={() => mobile && handleSelect(item.type)}
+                    className="flex flex-col items-center gap-1 p-1.5 rounded-md border border-border/50 bg-background cursor-grab active:cursor-grabbing hover:border-primary/40 hover:scale-[1.03]"
+                    role={mobile ? 'button' : undefined}
+                    tabIndex={mobile ? 0 : undefined}
+                    onKeyDown={(e) => {
+                      if (!mobile) return;
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSelect(item.type);
+                      }
+                    }}
+                  >
+                    <Icon className="w-3.5 h-3.5" style={{ color: `hsl(${color})` }} />
+                    <span className="text-[8px] text-muted-foreground truncate w-full text-center">{item.label}</span>
+                  </div>
+                );
+
+                if (mobile) return <div key={type}>{content}</div>;
+
                 return (
                   <HoverCard key={type} openDelay={120}>
-                    <HoverCardTrigger asChild>
-                      <div
-                        draggable
-                        onDragStart={(e) => onDragStart(e, item.type)}
-                        className="flex flex-col items-center gap-1 p-1.5 rounded-md border border-border/50 bg-background cursor-grab active:cursor-grabbing hover:border-primary/40 hover:scale-[1.03]"
-                      >
-                        <Icon className="w-3.5 h-3.5" style={{ color: `hsl(${color})` }} />
-                        <span className="text-[8px] text-muted-foreground truncate w-full text-center">{item.label}</span>
-                      </div>
-                    </HoverCardTrigger>
-                    <HoverCardContent side="right" align="start" className="w-72">
+                    <HoverCardTrigger asChild>{content}</HoverCardTrigger>
+                    <HoverCardContent side="right" align="start" className="w-[min(18rem,calc(100vw-1rem))]">
                       <NodeInfoContent item={item} compact />
                     </HoverCardContent>
                   </HoverCard>
@@ -208,21 +243,35 @@ export default function ComponentPalette({ collapsed, onToggle }: Props) {
                   <div className="grid grid-cols-2 gap-1.5">
                     {items.map((item) => {
                       const Icon = ICON_MAP[item.type];
+                      const content = (
+                        <div
+                          draggable={!mobile}
+                          onDragStart={(e) => onDragStart(e, item.type)}
+                          onClick={() => mobile && handleSelect(item.type)}
+                          className="group flex flex-col items-center gap-1.5 rounded-lg border border-border/50 bg-background p-2.5 text-center cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-sm hover:scale-[1.02]"
+                          role={mobile ? 'button' : undefined}
+                          tabIndex={mobile ? 0 : undefined}
+                          onKeyDown={(e) => {
+                            if (!mobile) return;
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleSelect(item.type);
+                            }
+                          }}
+                        >
+                          <div className="p-1.5 rounded-md" style={{ backgroundColor: `hsl(${color} / 0.1)` }}>
+                            <Icon className="w-4 h-4 group-hover:scale-110" style={{ color: `hsl(${color})` }} />
+                          </div>
+                          <span className="text-[10px] font-medium text-foreground/80 leading-tight">{item.label}</span>
+                        </div>
+                      );
+
+                      if (mobile) return <div key={item.type}>{content}</div>;
+
                       return (
                         <HoverCard key={item.type} openDelay={120}>
-                          <HoverCardTrigger asChild>
-                            <div
-                              draggable
-                              onDragStart={(e) => onDragStart(e, item.type)}
-                              className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg border border-border/50 bg-background cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-sm hover:scale-[1.02] text-center group"
-                            >
-                              <div className="p-1.5 rounded-md" style={{ backgroundColor: `hsl(${color} / 0.1)` }}>
-                                <Icon className="w-4 h-4 group-hover:scale-110" style={{ color: `hsl(${color})` }} />
-                              </div>
-                              <span className="text-[10px] font-medium text-foreground/80 leading-tight">{item.label}</span>
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent side="right" align="start" className="w-72">
+                          <HoverCardTrigger asChild>{content}</HoverCardTrigger>
+                          <HoverCardContent side="right" align="start" className="w-[min(18rem,calc(100vw-1rem))]">
                             <NodeInfoContent item={item} compact />
                           </HoverCardContent>
                         </HoverCard>

@@ -2,6 +2,7 @@ import { useDesignStore } from '@/store/useDesignStore';
 import { AlertTriangle, AlertCircle, Clock, CheckCircle2, ChevronUp, ChevronDown, Flame, Inbox, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
+import SimulationControls from './SimulationControls';
 
 const ICON_MAP = {
   bottleneck: AlertCircle,
@@ -18,13 +19,12 @@ export default function AnalysisPanel() {
   const criticalCount = warnings.filter((w) => w.severity === 'critical').length;
   const warningCount = warnings.length - criticalCount;
   const replayMode = simulation.mode === 'replay';
-  const replayTrace = simulation.replayTrace;
 
   return (
     <div className="border-t border-border glass shrink-0">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full h-10 flex items-center px-4 hover:bg-accent/50"
+        className="flex min-h-10 w-full flex-wrap items-center gap-y-2 px-4 py-2 hover:bg-accent/50"
       >
         <div className="flex items-center gap-2">
           {warnings.length === 0 ? (
@@ -49,13 +49,13 @@ export default function AnalysisPanel() {
             </>
           )}
         </div>
-        <div className="ml-auto flex items-center gap-3 text-[10px] text-muted-foreground">
-          <span className="hidden lg:inline-flex items-center gap-1">
+        <div className="ml-auto flex w-full flex-wrap items-center justify-between gap-2 text-[10px] text-muted-foreground sm:w-auto sm:justify-end sm:gap-3">
+          <span className="hidden xl:inline-flex items-center gap-1">
             <span>made with</span>
             <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
             <span>by preetam-ptwo</span>
           </span>
-          <span className="hidden lg:inline opacity-40">·</span>
+          <span className="hidden xl:inline opacity-40">·</span>
           <span>{nodes.length} nodes</span>
           <span className="opacity-40">·</span>
           <span>{edges.length} connections</span>
@@ -89,25 +89,7 @@ export default function AnalysisPanel() {
           )}
         </div>
       </button>
-      {replayMode && (
-        <div className="border-t border-border/70 bg-muted/20 px-4 py-3">
-          <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
-            <Badge variant="outline" className="h-5 text-[9px]">
-              Path {replayTrace.pathNodeIds.length || 0} nodes
-            </Badge>
-            <Badge variant="outline" className="h-5 text-[9px]">
-              Latency {replayTrace.accumulatedLatencyMs}/{replayTrace.totalLatencyMs}ms
-            </Badge>
-            <Badge variant="outline" className="h-5 text-[9px]">
-              Retries {replayTrace.estimatedRetries}
-            </Badge>
-            <Badge variant="outline" className="h-5 text-[9px]">
-              Bottlenecks {replayTrace.bottleneckNodeIds.length}
-            </Badge>
-            <span>{replayTrace.blockedReason ?? 'Replay path is highlighted directly on the diagram.'}</span>
-          </div>
-        </div>
-      )}
+      <SimulationControls />
       {expanded && warnings.length > 0 && (
         <div className="max-h-40 overflow-y-auto px-3 pb-2 space-y-1 stagger-children animate-slide-up">
           {warnings.map((w) => {
