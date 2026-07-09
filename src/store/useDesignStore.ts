@@ -688,7 +688,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
   setSimulation: (sim) =>
     set((state) => {
       const scenario = sim.scenario
-        ? { ...state.simulation.scenario, ...sim.scenario }
+      ? { ...state.simulation.scenario, ...sim.scenario } as SimulationScenario
         : state.simulation.scenario;
       const nextSimulation = normalizeSimulation(state.nodes, {
         ...state.simulation,

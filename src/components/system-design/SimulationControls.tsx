@@ -567,7 +567,7 @@ export default function SimulationControls() {
                         simulation.scenario.region || regions[0] || "us-east-1"
                       }
                       onValueChange={(value) =>
-                        applySimulationChanges({ scenario: { region: value } })
+                        applySimulationChanges({ scenario: { type: "zone-outage", region: value } })
                       }
                     >
                       <SelectTrigger className="h-8 text-xs">
@@ -600,7 +600,7 @@ export default function SimulationControls() {
                         }
                         onValueChange={(value) =>
                           applySimulationChanges({
-                            scenario: { region: value },
+                            scenario: { type: "regional-latency", region: value },
                           })
                         }
                       >
@@ -633,6 +633,7 @@ export default function SimulationControls() {
                         onChange={(e) =>
                           applySimulationChanges({
                             scenario: {
+                              type: "regional-latency",
                               latencyMs: Math.max(0, +e.target.value || 0),
                             },
                           })
@@ -657,6 +658,7 @@ export default function SimulationControls() {
                         onValueChange={(value) =>
                           applySimulationChanges({
                             scenario: {
+                              type: "queue-backlog",
                               queueNodeIds: value === "none" ? [] : [value],
                             },
                           })
@@ -711,7 +713,7 @@ export default function SimulationControls() {
                         step={5}
                         onValueChange={([value]) =>
                           applySimulationChanges({
-                            scenario: { backlogSeverity: value },
+                            scenario: { type: "queue-backlog", backlogSeverity: value },
                           })
                         }
                       />
