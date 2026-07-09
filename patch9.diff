@@ -1,0 +1,19 @@
+--- src/components/system-design/TemplateDialog.tsx
++++ src/components/system-design/TemplateDialog.tsx
+@@ -51,6 +51,7 @@
+   const data: SystemNodeData = {
+     label,
+     nodeType: type,
++    isFailed: false,
+     category,
+     replicas: 1,
+     region: 'us-east-1',
+@@ -88,7 +89,7 @@
+       id: `edge-${Date.now()}-${Math.random()}`,
+       source,
+       target,
+-      data: config as Record<string, unknown>,
++      data: config as unknown as Record<string, unknown>,
+       type: 'systemEdge',
+     }),
+   };

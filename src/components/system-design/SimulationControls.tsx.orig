@@ -390,7 +390,7 @@ export default function SimulationControls() {
                 {simulation.scenario.type === 'zone-outage' && (
                   <div className="space-y-1.5">
                     <span className="text-xs text-muted-foreground">Impacted region</span>
-                    <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { ...simulation.scenario, region: value } })}>
+                    <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { region: value } })}>
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {(regions.length > 0 ? regions : ['us-east-1']).map((region) => (
@@ -405,7 +405,7 @@ export default function SimulationControls() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <span className="text-xs text-muted-foreground">Affected region</span>
-                      <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { ...simulation.scenario, region: value } })}>
+                      <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { region: value } })}>
                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {(regions.length > 0 ? regions : ['us-east-1']).map((region) => (
@@ -416,7 +416,7 @@ export default function SimulationControls() {
                     </div>
                     <div className="space-y-1.5">
                       <span className="text-xs text-muted-foreground">Added latency (ms)</span>
-                      <Input type="number" min={0} className="h-8 text-xs" value={simulation.scenario.latencyMs ?? DEFAULT_SCENARIO_LATENCY_MS} onChange={(e) => applySimulationChanges({ scenario: { ...simulation.scenario, latencyMs: Math.max(0, +e.target.value || 0) } })} />
+                      <Input type="number" min={0} className="h-8 text-xs" value={simulation.scenario.latencyMs ?? DEFAULT_SCENARIO_LATENCY_MS} onChange={(e) => applySimulationChanges({ scenario: { latencyMs: Math.max(0, +e.target.value || 0) } })} />
                     </div>
                   </div>
                 )}
@@ -427,7 +427,7 @@ export default function SimulationControls() {
                       <span className="text-xs text-muted-foreground">Backlogged queue or bus</span>
                       <Select
                         value={simulation.scenario.queueNodeIds?.[0] || messagingNodes[0]?.id || 'none'}
-                        onValueChange={(value) => applySimulationChanges({ scenario: { ...simulation.scenario, queueNodeIds: value === 'none' ? [] : [value] } })}
+                        onValueChange={(value) => applySimulationChanges({ scenario: { queueNodeIds: value === 'none' ? [] : [value] } })}
                         disabled={messagingNodes.length === 0}
                       >
                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder={messagingNodes.length === 0 ? 'No messaging nodes available' : 'Select target'} /></SelectTrigger>
@@ -448,7 +448,7 @@ export default function SimulationControls() {
                         <span className="text-muted-foreground">Backlog severity</span>
                         <Badge variant="secondary" className="text-[10px] h-5">{simulation.scenario.backlogSeverity ?? DEFAULT_BACKLOG_SEVERITY}%</Badge>
                       </div>
-                      <Slider value={[simulation.scenario.backlogSeverity ?? DEFAULT_BACKLOG_SEVERITY]} min={20} max={90} step={5} onValueChange={([value]) => applySimulationChanges({ scenario: { ...simulation.scenario, backlogSeverity: value } })} />
+                      <Slider value={[simulation.scenario.backlogSeverity ?? DEFAULT_BACKLOG_SEVERITY]} min={20} max={90} step={5} onValueChange={([value]) => applySimulationChanges({ scenario: { backlogSeverity: value } })} />
                     </div>
                   </div>
                 )}

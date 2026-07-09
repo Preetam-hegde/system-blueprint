@@ -1,0 +1,11 @@
+--- TemplateDialog.tsx
++++ TemplateDialog.tsx
+@@ -89,7 +90,7 @@
+       id: `edge-${Date.now()}-${Math.random()}`,
+       source,
+       target,
+-      data: config as Record<string, unknown>,
++      data: config as unknown as Record<string, unknown>,
+       type: 'systemEdge',
+     }),
+   };
