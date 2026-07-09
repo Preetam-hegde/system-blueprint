@@ -39,7 +39,7 @@ const loadSavedPresets = (): SavedSimulationPreset[] => {
 
 export default function SimulationControls() {
   const {
-    simulation, setSimulation, updateNodeLoads, runAnalysis,
+    simulation, setSimulation, refreshSimulationState,
     nodes, advanceSimulationStep, resetSimulationReplay, toggleNodeFailure,
   } = useDesignStore();
   const [simulationOpen, setSimulationOpen] = useState(false);
@@ -86,8 +86,7 @@ export default function SimulationControls() {
       if (state.simulation.mode === 'replay') {
         state.advanceSimulationStep();
       } else {
-        state.updateNodeLoads();
-        state.runAnalysis();
+        state.refreshSimulationState();
       }
     }, tickMs);
 
@@ -97,33 +96,34 @@ export default function SimulationControls() {
 
   const applySimulationChanges = (changes: Parameters<typeof setSimulation>[0]) => {
     setSimulation(changes);
-    updateNodeLoads();
-    runAnalysis();
+    refreshSimulationState();
   };
 
   const toggleSimulation = () => {
     if (simulation.running) {
       setSimulation({ running: false });
       clearTimers();
+      refreshSimulationState();
       return;
     }
 
     const replayReset = simulation.mode === 'replay' && simulation.step >= simulation.maxSteps;
     setSimulation({ running: true, step: replayReset ? 0 : simulation.step });
     if (elapsed === 0 || replayReset) setElapsed(0);
-    updateNodeLoads();
-    runAnalysis();
+    refreshSimulationState();
   };
 
   const switchSimulationMode = (mode: 'live' | 'replay') => {
     if (mode === 'live') {
       setSimulation({ mode: 'live', running: false, step: 0 });
       clearTimers();
+      refreshSimulationState();
       return;
     }
     setSimulation({ mode: 'replay', running: false, step: 0 });
     clearTimers();
     setElapsed(0);
+    refreshSimulationState();
   };
 
   const updateScenarioType = (type: SimulationScenarioType) => {
@@ -197,8 +197,7 @@ export default function SimulationControls() {
       step: 0,
       failedNodeIds: preset.simulation.manualFailedNodeIds,
     });
-    updateNodeLoads();
-    runAnalysis();
+    refreshSimulationState();
     toast.success(`Applied preset: ${preset.name}`);
   };
 
@@ -251,7 +250,7 @@ export default function SimulationControls() {
             type="number"
             className="h-7 w-16 text-xs"
             value={simulation.rps}
-            onChange={(e) => setSimulation({ rps: +e.target.value })}
+            onChange={(e) => applySimulationChanges({ rps: +e.target.value })}
           />
         </div>
         {simulation.mode === 'replay' && (

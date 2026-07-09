@@ -79,8 +79,7 @@ describe('simulation scenarios', () => {
 
     const store = useDesignStore.getState();
     store.setSimulation({ scenario: { type: 'zone-outage', region: 'us-east-1' } });
-    store.updateNodeLoads();
-    store.runAnalysis();
+    store.refreshSimulationState();
 
     const state = useDesignStore.getState();
     expect(state.simulation.failedNodeIds).toEqual(['a']);
@@ -98,8 +97,7 @@ describe('simulation scenarios', () => {
 
     const store = useDesignStore.getState();
     store.setSimulation({ scenario: { type: 'regional-latency', region: 'us-east-1', latencyMs: 220 } });
-    store.updateNodeLoads();
-    store.runAnalysis();
+    store.refreshSimulationState();
 
     const state = useDesignStore.getState();
     expect(state.warnings.some((warning) => warning.type === 'latency' && warning.message.includes('us-east-1'))).toBe(true);
@@ -116,8 +114,7 @@ describe('simulation scenarios', () => {
 
     const store = useDesignStore.getState();
     store.setSimulation({ scenario: { type: 'queue-backlog', queueNodeIds: ['queue'], backlogSeverity: 70 } });
-    store.updateNodeLoads();
-    store.runAnalysis();
+    store.refreshSimulationState();
 
     const state = useDesignStore.getState();
     expect(state.warnings.some((warning) => warning.type === 'backlog' && warning.nodeId === 'queue')).toBe(true);

@@ -58,8 +58,7 @@ interface DesignStore {
   advanceSimulationStep: () => void;
   resetSimulationReplay: () => void;
   toggleNodeFailure: (nodeId: string) => void;
-  updateNodeLoads: () => void;
-  runAnalysis: () => void;
+  refreshSimulationState: () => void;
   buildCapacityPlan: (growthFactor: number, spikeMultiplier?: number) => CapacityPlanSummary;
 
   autoLayout: () => void;
@@ -442,6 +441,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       target: connection.target!,
     };
     set({ edges: addEdge(newEdge, get().edges) });
+    get().refreshSimulationState();
     get().saveHistory();
   },
 
@@ -471,6 +471,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
         simulation: normalizeSimulation(nodes, state.simulation),
       };
     });
+    get().refreshSimulationState();
     get().saveHistory();
   },
 
@@ -505,6 +506,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
         simulation: normalizeSimulation(nextNodes, state.simulation),
       };
     });
+    get().refreshSimulationState();
     get().saveHistory();
   },
 
@@ -518,8 +520,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
         simulation: normalizeSimulation(nodes, state.simulation),
       };
     });
-    get().updateNodeLoads();
-    get().runAnalysis();
+    get().refreshSimulationState();
   },
 
   updateEdgeConfig: (edgeId, config) => {
@@ -528,8 +529,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
         e.id === edgeId ? { ...e, data: { ...e.data, ...config } } : e
       ),
     });
-    get().updateNodeLoads();
-    get().runAnalysis();
+    get().refreshSimulationState();
   },
 
   selectNode: (nodeId) => set({ selectedNodeId: nodeId, selectedEdgeId: null }),
@@ -553,6 +553,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
         selectedEdgeId: null,
       });
     }
+    get().refreshSimulationState();
     get().saveHistory();
   },
 
@@ -566,12 +567,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       scenario,
     });
 
-    return {
-      simulation: {
-        ...nextSimulation,
-        replayTrace: buildReplayTrace(state.nodes, state.edges, nextSimulation),
-      },
-    };
+    return { simulation: nextSimulation };
   }),
 
   advanceSimulationStep: () => {
@@ -583,8 +579,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
     set((state) => ({
       simulation: normalizeSimulation(state.nodes, { ...simulation, step: nextStep, running: nextRunning }),
     }));
-    get().updateNodeLoads();
-    get().runAnalysis();
+    get().refreshSimulationState();
   },
 
   resetSimulationReplay: () => {
@@ -594,8 +589,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
     set((state) => ({
       simulation: normalizeSimulation(state.nodes, { ...simulation, step: 0, running: false }),
     }));
-    get().updateNodeLoads();
-    get().runAnalysis();
+    get().refreshSimulationState();
   },
 
   toggleNodeFailure: (nodeId) => {
@@ -609,15 +603,16 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
     set((state) => ({
       simulation: normalizeSimulation(state.nodes, { ...simulation, manualFailedNodeIds: nextManualFailedNodeIds }),
     }));
-    get().updateNodeLoads();
-    get().runAnalysis();
+    get().refreshSimulationState();
   },
 
-  updateNodeLoads: () => {
+  refreshSimulationState: () => {
     const { nodes, edges } = get();
     const simulation = normalizeSimulation(nodes, get().simulation);
     const loadMap = computeLoadMap(nodes, edges, simulation);
-    const { failedSet, backlogSet } = buildScenarioContext(nodes, simulation);
+    const { failedSet, backlogSet, scenario } = buildScenarioContext(nodes, simulation);
+    const warnings: AnalysisWarning[] = [];
+
     const updatedNodes = nodes.map((n) => {
       const data = getNodeData(n);
       const currentLoad = simulation.running || simulation.mode === 'replay' ? (loadMap[n.id] || 0) : 0;
@@ -627,38 +622,8 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       const effectiveLoad = (currentLoad / Math.max(data.replicas, 1)) * backlogPressure;
       const effectiveThroughputLimit = Math.max(data.throughputLimit * getBacklogThrottle(simulation, n.id, nodes), 1);
       const isFailed = failedSet.has(n.id);
-      return {
-        ...n,
-        data: {
-          ...n.data,
-          currentLoad: isFailed ? 0 : effectiveLoad,
-          isBottleneck: !isFailed && effectiveLoad > effectiveThroughputLimit,
-          isFailed,
-        },
-      };
-    });
-    const nextSimulation = {
-      ...simulation,
-      replayTrace: buildReplayTrace(updatedNodes, edges, simulation),
-    };
 
-    set({
-      simulation: nextSimulation,
-      nodes: updatedNodes,
-    });
-  },
-
-  runAnalysis: () => {
-    const { nodes, edges } = get();
-    const simulation = normalizeSimulation(nodes, get().simulation);
-    const { failedSet, backlogSet, scenario } = buildScenarioContext(nodes, simulation);
-    const warnings: AnalysisWarning[] = [];
-
-    nodes.forEach((n) => {
-      const data = getNodeData(n);
-      const effectiveThroughputLimit = Math.max(data.throughputLimit * getBacklogThrottle(simulation, n.id, nodes), 1);
-
-      if (failedSet.has(n.id)) {
+      if (isFailed) {
         warnings.push({
           id: `failure-${n.id}`,
           type: 'failure',
@@ -676,17 +641,17 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
           type: 'backlog',
           nodeId: n.id,
           message: `${data.label} is experiencing queue backlog pressure and reduced throughput`,
-          severity: data.currentLoad > effectiveThroughputLimit ? 'critical' : 'warning',
+          severity: effectiveLoad > effectiveThroughputLimit ? 'critical' : 'warning',
         });
       }
 
-      if (data.currentLoad > effectiveThroughputLimit) {
+      if (effectiveLoad > effectiveThroughputLimit) {
         warnings.push({
           id: `bn-${n.id}`,
           type: 'bottleneck',
           nodeId: n.id,
-          message: `${data.label} is overloaded (${Math.round(data.currentLoad)}/${Math.round(effectiveThroughputLimit)} req/s effective)`,
-          severity: data.currentLoad > effectiveThroughputLimit * 1.5 ? 'critical' : 'warning',
+          message: `${data.label} is overloaded (${Math.round(effectiveLoad)}/${Math.round(effectiveThroughputLimit)} req/s effective)`,
+          severity: effectiveLoad > effectiveThroughputLimit * 1.5 ? 'critical' : 'warning',
         });
       }
 
@@ -703,20 +668,38 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
           });
         }
       }
+
+      const spofNodeIds = new Set(warnings.filter((w) => w.type === 'spof').map((w) => w.nodeId));
+
+      return {
+        ...n,
+        data: {
+          ...n.data,
+          currentLoad: isFailed ? 0 : effectiveLoad,
+          isBottleneck: !isFailed && effectiveLoad > effectiveThroughputLimit,
+          isFailed,
+          isSpof: spofNodeIds.has(n.id),
+        },
+      };
     });
 
-    const sourceNodes = nodes.filter((n) => !edges.some((e) => e.target === n.id));
+    const nextSimulation = {
+      ...simulation,
+      replayTrace: buildReplayTrace(updatedNodes, edges, simulation),
+    };
+
+    const sourceNodes = updatedNodes.filter((n) => !edges.some((e) => e.target === n.id));
     sourceNodes.forEach((src) => {
       const visited = new Set<string>();
       const dfs = (nodeId: string, cumLatency: number, path: string[]) => {
         if (visited.has(nodeId)) return;
         visited.add(nodeId);
-        const nodeData = getNodeData(nodes.find((n) => n.id === nodeId)!);
-        const totalLatency = cumLatency + getReplayNodeLatency(nodeData, simulation);
+        const nodeData = getNodeData(updatedNodes.find((n) => n.id === nodeId)!);
+        const totalLatency = cumLatency + getReplayNodeLatency(nodeData, nextSimulation);
         const outgoing = edges.filter((e) => e.source === nodeId);
         if (outgoing.length === 0 && totalLatency > 200) {
-          const retryLabel = simulation.replayTrace.estimatedRetries > 0
-            ? `, ~${simulation.replayTrace.estimatedRetries} retries`
+          const retryLabel = nextSimulation.replayTrace.estimatedRetries > 0
+            ? `, ~${nextSimulation.replayTrace.estimatedRetries} retries`
             : '';
           warnings.push({
             id: `lat-${nodeId}-${Date.now()}`,
@@ -738,19 +721,9 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
     });
 
     set({
+      simulation: nextSimulation,
+      nodes: updatedNodes,
       warnings,
-      simulation: {
-        ...simulation,
-        replayTrace: buildReplayTrace(nodes, edges, simulation),
-      },
-    });
-
-    const spofNodeIds = new Set(warnings.filter((w) => w.type === 'spof').map((w) => w.nodeId));
-    set({
-      nodes: get().nodes.map((n) => ({
-        ...n,
-        data: { ...n.data, isSpof: spofNodeIds.has(n.id) },
-      })),
     });
   },
 
@@ -861,6 +834,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
     if (historyIndex > 0) {
       const prev = history[historyIndex - 1];
       set({ nodes: prev.nodes, edges: prev.edges, historyIndex: historyIndex - 1 });
+      get().refreshSimulationState();
     }
   },
 
@@ -869,6 +843,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
     if (historyIndex < history.length - 1) {
       const next = history[historyIndex + 1];
       set({ nodes: next.nodes, edges: next.edges, historyIndex: historyIndex + 1 });
+      get().refreshSimulationState();
     }
   },
 
@@ -895,6 +870,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
         selectedEdgeId: null,
         simulation: normalizeSimulation(nodes, state.simulation),
       }));
+      get().refreshSimulationState();
       get().saveHistory();
     } catch (e) {
       console.error('Invalid JSON import', e);
@@ -910,6 +886,7 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
       warnings: [],
       simulation: normalizeSimulation([], state.simulation),
     }));
+    get().refreshSimulationState();
     get().saveHistory();
   },
 }));
