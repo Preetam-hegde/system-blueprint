@@ -1,0 +1,47 @@
+--- src/components/system-design/SimulationControls.tsx
++++ src/components/system-design/SimulationControls.tsx
+@@ -390,7 +390,7 @@
+                   </div>
+                   <div className="space-y-1.5">
+                     <span className="text-xs text-muted-foreground">Impacted region</span>
+-                    <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { region: value } })}>
++                    <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { ...simulation.scenario, region: value } })}>
+                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                       <SelectContent>
+                         {regions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+@@ -405,7 +405,7 @@
+                   >
+                     <div className="space-y-1.5">
+                       <span className="text-xs text-muted-foreground">Affected region</span>
+-                      <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { region: value } })}>
++                      <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { ...simulation.scenario, region: value } })}>
+                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                         <SelectContent>
+                           {regions.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+@@ -416,7 +416,7 @@
+                       <div className="flex items-center justify-between">
+                         <span className="text-xs text-muted-foreground">Added latency</span>
+                         <span className="text-xs text-muted-foreground">{simulation.scenario.latencyMs ?? 150}ms</span>
+                       </div>
+-                      <Slider value={[simulation.scenario.latencyMs ?? 150]} min={50} max={1000} step={50} onValueChange={([val]) => applySimulationChanges({ scenario: { latencyMs: val } })} />
++                      <Slider value={[simulation.scenario.latencyMs ?? 150]} min={50} max={1000} step={50} onValueChange={([val]) => applySimulationChanges({ scenario: { ...simulation.scenario, latencyMs: val } })} />
+                     </div>
+                   </motion.div>
+@@ -427,7 +427,7 @@
+                     animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+                     exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                   >
+-                    <ToggleGroup type="multiple" value={simulation.scenario.queueNodeIds || []} onValueChange={(vals) => applySimulationChanges({ scenario: { queueNodeIds: vals } })} className="flex-wrap justify-start">
++                    <ToggleGroup type="multiple" value={simulation.scenario.queueNodeIds || []} onValueChange={(vals) => applySimulationChanges({ scenario: { ...simulation.scenario, queueNodeIds: vals } })} className="flex-wrap justify-start">
+                       {messagingNodes.map((node) => {
+                         const data = getNodeData(node);
+                         return (
+@@ -448,7 +448,7 @@
+                       <div className="flex items-center justify-between">
+                         <span className="text-xs text-muted-foreground">Severity</span>
+                         <span className="text-xs text-muted-foreground">{simulation.scenario.backlogSeverity ?? 65}%</span>
+                       </div>
+-                      <Slider value={[simulation.scenario.backlogSeverity ?? 65]} min={10} max={200} step={5} onValueChange={([val]) => applySimulationChanges({ scenario: { backlogSeverity: val } })} />
++                      <Slider value={[simulation.scenario.backlogSeverity ?? 65]} min={10} max={200} step={5} onValueChange={([val]) => applySimulationChanges({ scenario: { ...simulation.scenario, backlogSeverity: val } })} />
+                     </div>
+                   </motion.div>

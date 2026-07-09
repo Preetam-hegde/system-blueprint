@@ -52,7 +52,6 @@ function makeNode(
   const data: SystemNodeData = {
     label,
     nodeType: type,
-    isFailed: false,
     category,
     replicas: 1,
     region: 'us-east-1',
@@ -71,7 +70,7 @@ function makeNode(
     id,
     type: 'systemNode',
     position: { x, y },
-    data: data as unknown as Record<string, unknown>,
+    data: data as Record<string, unknown>,
   };
 }
 
@@ -89,7 +88,7 @@ function makeEdge(
     type: 'systemEdge',
     source,
     target,
-    data: data as unknown as Record<string, unknown>,
+    data: data as Record<string, unknown>,
   };
 }
 

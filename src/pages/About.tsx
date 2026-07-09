@@ -11,7 +11,7 @@ const reveal = {
   visible: (delay = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
@@ -23,7 +23,7 @@ export default function About() {
           aria-hidden="true"
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as const }}
           className="pointer-events-none absolute inset-x-0 top-0 h-[32rem] bg-[linear-gradient(120deg,hsl(217_91%_60%/.08),transparent_36%,hsl(24_95%_53%/.08))] dark:bg-[linear-gradient(125deg,hsl(217_91%_60%/.16),transparent_34%,hsl(188_95%_55%/.08),transparent_60%,hsl(24_95%_53%/.14))]"
         />
         <motion.div

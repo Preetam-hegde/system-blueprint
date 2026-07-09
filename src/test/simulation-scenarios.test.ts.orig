@@ -64,15 +64,6 @@ beforeEach(() => {
       manualFailedNodeIds: [],
       failedNodeIds: [],
       scenario: { type: 'none' },
-      retryAttempts: 0,
-      retryBackoffMs: 0,
-      replayTrace: {
-        pathNodeIds: [],
-        pathEdgeIds: [],
-        currentNodeId: null,
-        currentEdgeId: null,
-        steps: []
-      } as any,
     },
   });
 });

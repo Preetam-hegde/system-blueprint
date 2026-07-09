@@ -1,0 +1,46 @@
+--- src/pages/About.tsx
++++ src/pages/About.tsx
+@@ -73,7 +73,7 @@
+     opacity: 1,
+     y: 0,
+-    transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] },
++    transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] as const },
+   }),
+ };
+
+@@ -81,7 +81,7 @@
+         <motion.div
+           aria-hidden="true"
+           initial={{ opacity: 0, scale: 0.96 }}
+           animate={{ opacity: 1, scale: 1 }}
+-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
++          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as const }}
+           className="pointer-events-none absolute inset-x-0 top-0 h-[32rem] bg-[linear-gradient(120deg,hsl(217_91%_60%/.08),transparent_36%,hsl(24_95%_53%/.08))] dark:bg-[linear-gradient(125deg,hsl(217_91%_60%/.16),transparent_34%,hsl(188_95%_55%/.08),transparent_60%,hsl(24_95%_53%/.14))]"
+         />
+@@ -99,7 +99,7 @@
+           <motion.div
+             initial={{ opacity: 0, y: 16 }}
+             animate={{ opacity: 1, y: 0 }}
+-            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
++            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] as const }}
+             className="mx-auto mt-8 flex max-w-sm flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4"
+           >
+             <Button
+@@ -142,7 +142,7 @@
+                 initial={{ opacity: 0, y: 12 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: true, margin: "-40px" }}
+-                transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
++                transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] as const }}
+               >
+                 <dt className="flex items-center gap-3 text-base font-medium text-foreground">
+                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 dark:bg-primary/20 text-primary ring-1 ring-primary/20">
+@@ -177,7 +177,7 @@
+               initial={{ opacity: 0, scale: 0.98 }}
+               whileInView={{ opacity: 1, scale: 1 }}
+               viewport={{ once: true }}
+-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
++              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] as const }}
+             >
+               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Ready to map your systems?</h2>
+               <p className="mx-auto mt-4 max-w-xl text-lg/8 text-blue-100">
