@@ -1,36 +1,55 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { Monitor, Moon, RotateCcw, Settings, Sun } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useEffect, useState, type ReactNode } from "react";
+import { Monitor, Moon, RotateCcw, Settings, Sun } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-type ThemeMode = 'light' | 'dark' | 'system';
-type AnimationQuality = 'low' | 'medium' | 'high';
+type ThemeMode = "light" | "dark" | "system";
+type AnimationQuality = "low" | "medium" | "high";
 
 const DEFAULT_SETTINGS = {
-  theme: 'dark' as ThemeMode,
+  theme: "dark" as ThemeMode,
   showMinimap: true,
   showGrid: true,
   snapToGrid: false,
-  animationQuality: 'high' as AnimationQuality,
+  animationQuality: "high" as AnimationQuality,
   packetDensity: 50,
 };
 
 const THEME_OPTIONS = [
-  { value: 'light' as ThemeMode, label: 'Light', icon: Sun },
-  { value: 'dark' as ThemeMode, label: 'Dark', icon: Moon },
-  { value: 'system' as ThemeMode, label: 'System', icon: Monitor },
+  { value: "light" as ThemeMode, label: "Light", icon: Sun },
+  { value: "dark" as ThemeMode, label: "Dark", icon: Moon },
+  { value: "system" as ThemeMode, label: "System", icon: Monitor },
 ];
 
 function applyTheme(mode: ThemeMode) {
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  document.documentElement.classList.toggle('dark', mode === 'system' ? prefersDark : mode === 'dark');
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.classList.toggle(
+    "dark",
+    mode === "system" ? prefersDark : mode === "dark",
+  );
 }
 
 function Section({
@@ -75,39 +94,64 @@ function Row({
 
 export default function SettingsDialog() {
   const [open, setOpen] = useState(false);
-  const [theme, setTheme] = useState<ThemeMode>(() => (localStorage.getItem('sd-theme') as ThemeMode) || DEFAULT_SETTINGS.theme);
-  const [showMinimap, setShowMinimap] = useState(() => localStorage.getItem('sd-minimap') !== 'false');
-  const [showGrid, setShowGrid] = useState(() => localStorage.getItem('sd-grid') !== 'false');
-  const [snapToGrid, setSnapToGrid] = useState(() => localStorage.getItem('sd-snap') === 'true');
-  const [animationQuality, setAnimationQuality] = useState<AnimationQuality>(
-    () => (localStorage.getItem('sd-anim-quality') as AnimationQuality) || DEFAULT_SETTINGS.animationQuality
+  const [theme, setTheme] = useState<ThemeMode>(
+    () =>
+      (localStorage.getItem("sd-theme") as ThemeMode) || DEFAULT_SETTINGS.theme,
   );
-  const [packetDensity, setPacketDensity] = useState(() => +(localStorage.getItem('sd-packet-density') || String(DEFAULT_SETTINGS.packetDensity)));
+  const [showMinimap, setShowMinimap] = useState(
+    () => localStorage.getItem("sd-minimap") !== "false",
+  );
+  const [showGrid, setShowGrid] = useState(
+    () => localStorage.getItem("sd-grid") !== "false",
+  );
+  const [snapToGrid, setSnapToGrid] = useState(
+    () => localStorage.getItem("sd-snap") === "true",
+  );
+  const [animationQuality, setAnimationQuality] = useState<AnimationQuality>(
+    () =>
+      (localStorage.getItem("sd-anim-quality") as AnimationQuality) ||
+      DEFAULT_SETTINGS.animationQuality,
+  );
+  const [packetDensity, setPacketDensity] = useState(
+    () =>
+      +(
+        localStorage.getItem("sd-packet-density") ||
+        String(DEFAULT_SETTINGS.packetDensity)
+      ),
+  );
 
   useEffect(() => {
     applyTheme(theme);
-    localStorage.setItem('sd-theme', theme);
+    localStorage.setItem("sd-theme", theme);
   }, [theme]);
 
   useEffect(() => {
-    if (theme !== 'system') return;
+    if (theme !== "system") return;
 
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => applyTheme('system');
-    mediaQuery.addEventListener('change', handleChange);
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => applyTheme("system");
+    mediaQuery.addEventListener("change", handleChange);
 
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem('sd-minimap', String(showMinimap));
-    localStorage.setItem('sd-grid', String(showGrid));
-    localStorage.setItem('sd-snap', String(snapToGrid));
-    localStorage.setItem('sd-anim-quality', animationQuality);
-    localStorage.setItem('sd-packet-density', String(packetDensity));
-    window.dispatchEvent(new CustomEvent('sd-settings-change', {
-      detail: { showMinimap, showGrid, snapToGrid, animationQuality, packetDensity },
-    }));
+    localStorage.setItem("sd-minimap", String(showMinimap));
+    localStorage.setItem("sd-grid", String(showGrid));
+    localStorage.setItem("sd-snap", String(snapToGrid));
+    localStorage.setItem("sd-anim-quality", animationQuality);
+    localStorage.setItem("sd-packet-density", String(packetDensity));
+    window.dispatchEvent(
+      new CustomEvent("sd-settings-change", {
+        detail: {
+          showMinimap,
+          showGrid,
+          snapToGrid,
+          animationQuality,
+          packetDensity,
+        },
+      }),
+    );
   }, [showMinimap, showGrid, snapToGrid, animationQuality, packetDensity]);
 
   const resetDefaults = () => {
@@ -136,12 +180,21 @@ export default function SettingsDialog() {
         <DialogHeader className="border-b border-border px-4 py-4 pr-14 sm:px-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div className="space-y-1">
-              <DialogTitle className="text-base font-semibold">Settings</DialogTitle>
+              <DialogTitle className="text-base font-semibold">
+                Settings
+              </DialogTitle>
               <p className="text-sm text-muted-foreground">
-                Workspace preferences for appearance, canvas behavior, and simulation.
+                Workspace preferences for appearance, canvas behavior, and
+                simulation.
               </p>
             </div>
-            <Button type="button" variant="ghost" size="sm" className="h-8 shrink-0 self-start px-2.5 text-xs" onClick={resetDefaults}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 shrink-0 self-start px-2.5 text-xs"
+              onClick={resetDefaults}
+            >
               <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
               Reset
             </Button>
@@ -163,8 +216,8 @@ export default function SettingsDialog() {
                       onClick={() => setTheme(value)}
                       className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
                         theme === value
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground'
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
                       }`}
                     >
                       <Icon className="h-4 w-4" />
@@ -183,7 +236,10 @@ export default function SettingsDialog() {
                 title="Show minimap"
                 description="Keep a small overview of large diagrams visible in the corner."
               >
-                <Switch checked={showMinimap} onCheckedChange={setShowMinimap} />
+                <Switch
+                  checked={showMinimap}
+                  onCheckedChange={setShowMinimap}
+                />
               </Row>
               <Separator />
               <Row
@@ -209,7 +265,12 @@ export default function SettingsDialog() {
                 title="Animation quality"
                 description="Use lower quality on dense diagrams for less visual overhead."
               >
-                <Select value={animationQuality} onValueChange={(value) => setAnimationQuality(value as AnimationQuality)}>
+                <Select
+                  value={animationQuality}
+                  onValueChange={(value) =>
+                    setAnimationQuality(value as AnimationQuality)
+                  }
+                >
                   <SelectTrigger className="h-9 w-36 text-xs">
                     <SelectValue />
                   </SelectTrigger>
@@ -224,12 +285,17 @@ export default function SettingsDialog() {
               <div className="px-4 py-3">
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <div className="space-y-1">
-                    <Label className="text-sm font-medium text-foreground">Packet density</Label>
+                    <Label className="text-sm font-medium text-foreground">
+                      Packet density
+                    </Label>
                     <p className="text-xs leading-5 text-muted-foreground">
-                      Control how full the traffic animation feels during simulation.
+                      Control how full the traffic animation feels during
+                      simulation.
                     </p>
                   </div>
-                  <span className="text-xs font-mono text-muted-foreground">{packetDensity}%</span>
+                  <span className="text-xs font-mono text-muted-foreground">
+                    {packetDensity}%
+                  </span>
                 </div>
                 <Slider
                   value={[packetDensity]}
@@ -247,13 +313,21 @@ export default function SettingsDialog() {
             >
               <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-3 px-4 py-3 text-sm">
                 <span className="text-foreground">Delete selection</span>
-                <span className="font-mono text-xs text-muted-foreground">Del</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  Del
+                </span>
                 <span className="text-foreground">Undo</span>
-                <span className="font-mono text-xs text-muted-foreground">Ctrl+Z</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  Ctrl+Z
+                </span>
                 <span className="text-foreground">Redo</span>
-                <span className="font-mono text-xs text-muted-foreground">Ctrl+Shift+Z</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  Ctrl+Shift+Z
+                </span>
                 <span className="text-foreground">Help</span>
-                <span className="font-mono text-xs text-muted-foreground">?</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  ?
+                </span>
               </div>
             </Section>
           </div>
