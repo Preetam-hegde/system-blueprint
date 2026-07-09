@@ -36,6 +36,8 @@ const ICON_MAP: Record<SystemNodeType, React.ElementType> = {
   'waf': ShieldAlert, 'vault': Lock, 'identity-provider': UserCheck, 'oauth-server': KeyRound, 'kms': Key,
 };
 
+const NODE_CATALOG_MAP = new Map(NODE_CATALOG.map((n) => [n.type, n]));
+
 const CATEGORY_LABELS: Record<NodeCategory, string> = {
   compute: 'Compute', storage: 'Storage', messaging: 'Messaging', 'ai-ml': 'AI / ML',
   networking: 'Networking', clients: 'Clients', observability: 'Observability', security: 'Security',
@@ -179,7 +181,7 @@ export default function ComponentPalette({ collapsed, mobile = false, onToggle, 
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Recent</span>
             <div className="grid grid-cols-3 gap-1 mt-1.5">
               {recent.map((type) => {
-                const item = NODE_CATALOG.find((n) => n.type === type);
+                const item = NODE_CATALOG_MAP.get(type);
                 if (!item) return null;
                 const Icon = ICON_MAP[item.type];
                 const color = CATEGORY_COLORS[item.category];
