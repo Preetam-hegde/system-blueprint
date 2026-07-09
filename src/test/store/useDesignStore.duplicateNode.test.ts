@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { useDesignStore } from '@/store/useDesignStore';
 import type { Node, Edge } from '@xyflow/react';
 
 describe('useDesignStore - duplicateNode', () => {
-  let saveHistorySpy: any;
+  let saveHistorySpy: Mock;
 
   beforeEach(() => {
     useDesignStore.setState({
