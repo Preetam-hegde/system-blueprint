@@ -107,6 +107,9 @@ export default function NodeConfigPanel({ mobile = false }: NodeConfigPanelProps
   const incomingEdges = edges.filter((e) => e.target === selectedNodeId);
   const outgoingEdges = edges.filter((e) => e.source === selectedNodeId);
 
+  const hasConnections = incomingEdges.length > 0 || outgoingEdges.length > 0;
+  const nodeMap = hasConnections ? new Map(nodes.map(n => [n.id, n])) : new Map();
+
   return (
     <div className={mobile
       ? 'absolute inset-y-0 right-0 z-30 w-[min(22rem,92vw)] border-l border-border glass h-full flex flex-col animate-slide-in-right shadow-2xl'
@@ -243,7 +246,7 @@ export default function NodeConfigPanel({ mobile = false }: NodeConfigPanelProps
             </>
           )}
 
-          {(incomingEdges.length > 0 || outgoingEdges.length > 0) && (
+          {hasConnections && (
             <>
               <Separator />
               <div className="space-y-2">
@@ -252,7 +255,7 @@ export default function NodeConfigPanel({ mobile = false }: NodeConfigPanelProps
                   <div className="space-y-1">
                     <span className="text-[10px] text-muted-foreground">← Incoming ({incomingEdges.length})</span>
                     {incomingEdges.map((e) => {
-                      const sourceNode = nodes.find((n) => n.id === e.source);
+                      const sourceNode = nodeMap.get(e.source);
                       const ed = (e.data || {}) as unknown as EdgeConfig;
                       return (
                         <div key={e.id} className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-accent/50 rounded px-2 py-1">
@@ -268,7 +271,7 @@ export default function NodeConfigPanel({ mobile = false }: NodeConfigPanelProps
                   <div className="space-y-1">
                     <span className="text-[10px] text-muted-foreground">→ Outgoing ({outgoingEdges.length})</span>
                     {outgoingEdges.map((e) => {
-                      const targetNode = nodes.find((n) => n.id === e.target);
+                      const targetNode = nodeMap.get(e.target);
                       const ed = (e.data || {}) as unknown as EdgeConfig;
                       return (
                         <div key={e.id} className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-accent/50 rounded px-2 py-1">
