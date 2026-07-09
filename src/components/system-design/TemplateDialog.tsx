@@ -63,6 +63,7 @@ function makeNode(
     currentLoad: 0,
     isBottleneck: false,
     isSpof: false,
+    isFailed: false,
     ...overrides,
   };
 
@@ -70,7 +71,7 @@ function makeNode(
     id,
     type: 'systemNode',
     position: { x, y },
-    data: data as Record<string, unknown>,
+    data: data as unknown as Record<string, unknown>,
   };
 }
 
@@ -88,7 +89,7 @@ function makeEdge(
     type: 'systemEdge',
     source,
     target,
-    data: data as Record<string, unknown>,
+    data: data as unknown as Record<string, unknown>,
   };
 }
 
