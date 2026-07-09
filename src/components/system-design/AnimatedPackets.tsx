@@ -62,6 +62,8 @@ export default function AnimatedPackets() {
       return;
     }
 
+    const nodeMap = new Map(nodes.map(node => [node.id, node]));
+
     const interval = setInterval(() => {
       const randomEdge = activeEdges[Math.floor(Math.random() * activeEdges.length)];
       const sourcePos = getNodeCenter(randomEdge.source);
@@ -73,8 +75,8 @@ export default function AnimatedPackets() {
       const protocol = edgeData.protocol || 'HTTP';
       const protocolInfo = PROTOCOL_KNOWLEDGE[protocol as ConnectionProtocol];
       const color = protocolInfo?.color || '221 83% 53%';
-      const sourceNode = nodes.find((node) => node.id === randomEdge.source);
-      const targetNode = nodes.find((node) => node.id === randomEdge.target);
+      const sourceNode = nodeMap.get(randomEdge.source);
+      const targetNode = nodeMap.get(randomEdge.target);
       const sourceData = sourceNode?.data as SystemNodeData | undefined;
       const targetData = targetNode?.data as SystemNodeData | undefined;
       const touchesLatencyRegion = simulation.scenario.type === 'regional-latency'
