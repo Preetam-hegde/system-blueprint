@@ -64,6 +64,19 @@ beforeEach(() => {
       manualFailedNodeIds: [],
       failedNodeIds: [],
       scenario: { type: 'none' },
+      retryAttempts: 0,
+      retryBackoffMs: 1000,
+      replayTrace: {
+        pathNodeIds: [],
+        pathEdgeIds: [],
+        currentNodeId: null,
+        currentEdgeId: null,
+        accumulatedLatencyMs: 0,
+        totalLatencyMs: 0,
+        estimatedRetries: 0,
+        bottleneckNodeIds: [],
+        completedPct: 0,
+      },
     },
   });
 });
