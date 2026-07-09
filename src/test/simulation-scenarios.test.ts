@@ -64,6 +64,9 @@ beforeEach(() => {
       manualFailedNodeIds: [],
       failedNodeIds: [],
       scenario: { type: 'none' },
+      retryAttempts: 3,
+      retryBackoffMs: 1000,
+      replayTrace: [],
     },
   });
 });
