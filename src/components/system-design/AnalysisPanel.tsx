@@ -1,8 +1,19 @@
-import { useDesignStore } from '@/store/useDesignStore';
-import { AlertTriangle, AlertCircle, Clock, CheckCircle2, ChevronUp, ChevronDown, Flame, Inbox, Heart } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
-import SimulationControls from './SimulationControls';
+import { useDesignStore } from "@/store/useDesignStore";
+import { useShallow } from "zustand/react/shallow";
+import {
+  AlertTriangle,
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  ChevronUp,
+  ChevronDown,
+  Flame,
+  Inbox,
+  Heart,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import SimulationControls from "./SimulationControls";
 
 const ICON_MAP = {
   bottleneck: AlertCircle,
@@ -13,12 +24,21 @@ const ICON_MAP = {
 };
 
 export default function AnalysisPanel() {
-  const { warnings, nodes, edges, simulation } = useDesignStore();
+  const { warnings, nodes, edges, simulation } = useDesignStore(
+    useShallow((s) => ({
+      warnings: s.warnings,
+      nodes: s.nodes,
+      edges: s.edges,
+      simulation: s.simulation,
+    })),
+  );
   const [expanded, setExpanded] = useState(false);
 
-  const criticalCount = warnings.filter((w) => w.severity === 'critical').length;
+  const criticalCount = warnings.filter(
+    (w) => w.severity === "critical",
+  ).length;
   const warningCount = warnings.length - criticalCount;
-  const replayMode = simulation.mode === 'replay';
+  const replayMode = simulation.mode === "replay";
 
   return (
     <div className="border-t border-border glass shrink-0">
@@ -30,20 +50,28 @@ export default function AnalysisPanel() {
           {warnings.length === 0 ? (
             <>
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-              <span className="text-xs text-muted-foreground">No issues detected</span>
+              <span className="text-xs text-muted-foreground">
+                No issues detected
+              </span>
             </>
           ) : (
             <>
               {criticalCount > 0 && (
-                <Badge variant="destructive" className="text-[10px] h-5 px-1.5 gap-1">
+                <Badge
+                  variant="destructive"
+                  className="text-[10px] h-5 px-1.5 gap-1"
+                >
                   <AlertCircle className="w-3 h-3" />
                   {criticalCount} critical
                 </Badge>
               )}
               {warningCount > 0 && (
-                <Badge variant="secondary" className="text-[10px] h-5 px-1.5 gap-1 text-amber-600 dark:text-amber-400">
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] h-5 px-1.5 gap-1 text-amber-600 dark:text-amber-400"
+                >
                   <AlertTriangle className="w-3 h-3" />
-                  {warningCount} warning{warningCount > 1 ? 's' : ''}
+                  {warningCount} warning{warningCount > 1 ? "s" : ""}
                 </Badge>
               )}
             </>
@@ -60,7 +88,10 @@ export default function AnalysisPanel() {
           <span className="opacity-40">·</span>
           <span>{edges.length} connections</span>
           {simulation.running && (
-            <Badge variant="outline" className="text-[9px] h-4 px-1.5 gap-1 text-emerald-500 border-emerald-500/30">
+            <Badge
+              variant="outline"
+              className="text-[9px] h-4 px-1.5 gap-1 text-emerald-500 border-emerald-500/30"
+            >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live
             </Badge>
@@ -75,18 +106,21 @@ export default function AnalysisPanel() {
               {simulation.failedNodeIds.length} failed
             </Badge>
           )}
-          {simulation.scenario.type !== 'none' && (
+          {simulation.scenario.type !== "none" && (
             <Badge variant="secondary" className="text-[9px] h-4 px-1.5">
-              {simulation.scenario.type === 'zone-outage'
-                ? 'Zone outage'
-                : simulation.scenario.type === 'regional-latency'
-                  ? 'Regional latency'
-                  : 'Queue backlog'}
+              {simulation.scenario.type === "zone-outage"
+                ? "Zone outage"
+                : simulation.scenario.type === "regional-latency"
+                  ? "Regional latency"
+                  : "Queue backlog"}
             </Badge>
           )}
-          {warnings.length > 0 && (
-            expanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />
-          )}
+          {warnings.length > 0 &&
+            (expanded ? (
+              <ChevronDown className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ))}
         </div>
       </button>
       <SimulationControls />
@@ -98,9 +132,9 @@ export default function AnalysisPanel() {
               <div
                 key={w.id}
                 className={`flex items-start gap-2 text-xs px-3 py-2 rounded-lg ${
-                  w.severity === 'critical'
-                    ? 'bg-destructive/10 text-destructive border border-destructive/20'
-                    : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+                  w.severity === "critical"
+                    ? "bg-destructive/10 text-destructive border border-destructive/20"
+                    : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 mt-0.5 shrink-0" />
