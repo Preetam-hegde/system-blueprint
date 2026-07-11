@@ -1,6 +1,11 @@
-import { useDesignStore } from '@/store/useDesignStore';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useDesignStore } from "@/store/useDesignStore";
+import { useShallow } from "zustand/react/shallow";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,70 +13,114 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
-  Undo2, Redo2,
-  Download, Upload, Image, Link, Trash2, ChevronDown,
-  Boxes, LayoutGrid, UserRound,
-  Github, Globe2, NotebookPen,
-} from 'lucide-react';
-import { toPng } from 'html-to-image';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { toast } from 'sonner';
-import SettingsDialog from './SettingsDialog';
-import CapacityPlannerDialog from './CapacityPlannerDialog';
+  Undo2,
+  Redo2,
+  Download,
+  Upload,
+  Image,
+  Link,
+  Trash2,
+  ChevronDown,
+  Boxes,
+  LayoutGrid,
+  UserRound,
+  Github,
+  Globe2,
+  NotebookPen,
+} from "lucide-react";
+import { toPng } from "html-to-image";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import { toast } from "sonner";
+import SettingsDialog from "./SettingsDialog";
+import CapacityPlannerDialog from "./CapacityPlannerDialog";
 
-const PORTFOLIO_URL = 'https://preetamhegde.in';
-const INKWELL_URL = 'https://inkwell.preetamhegde.in';
-const REPO_URL = 'https://github.com/Preetam-hegde/system-blueprint';
+const PORTFOLIO_URL = "https://preetamhegde.in";
+const INKWELL_URL = "https://inkwell.preetamhegde.in";
+const REPO_URL = "https://github.com/Preetam-hegde/system-blueprint";
 
 export default function Toolbar() {
   const {
-    undo, redo, exportJSON, importJSON, clearCanvas, nodes, edges, autoLayout,
-  } = useDesignStore();
-  const [importText, setImportText] = useState('');
+    undo,
+    redo,
+    exportJSON,
+    importJSON,
+    clearCanvas,
+    nodes,
+    edges,
+    autoLayout,
+  } = useDesignStore(
+    useShallow((state) => ({
+      undo: state.undo,
+      redo: state.redo,
+      exportJSON: state.exportJSON,
+      importJSON: state.importJSON,
+      clearCanvas: state.clearCanvas,
+      nodes: state.nodes,
+      edges: state.edges,
+      autoLayout: state.autoLayout,
+    })),
+  );
+  const [importText, setImportText] = useState("");
   const [importOpen, setImportOpen] = useState(false);
 
   const handleExportJSON = () => {
     const json = exportJSON();
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'system-design.json'; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "system-design.json";
+    a.click();
     URL.revokeObjectURL(url);
-    toast.success('Exported as JSON');
+    toast.success("Exported as JSON");
   };
 
   const handleExportPNG = async () => {
-    const canvas = document.querySelector('.react-flow') as HTMLElement;
+    const canvas = document.querySelector(".react-flow") as HTMLElement;
     if (!canvas) return;
     try {
-      const isDark = document.documentElement.classList.contains('dark');
-      const dataUrl = await toPng(canvas, { backgroundColor: isDark ? '#0c0e14' : '#f4f5f7' });
-      const a = document.createElement('a');
-      a.href = dataUrl; a.download = 'system-design.png'; a.click();
-      toast.success('Exported as PNG');
-    } catch { toast.error('Failed to export PNG'); }
+      const isDark = document.documentElement.classList.contains("dark");
+      const dataUrl = await toPng(canvas, {
+        backgroundColor: isDark ? "#0c0e14" : "#f4f5f7",
+      });
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = "system-design.png";
+      a.click();
+      toast.success("Exported as PNG");
+    } catch {
+      toast.error("Failed to export PNG");
+    }
   };
 
   const handleShareURL = () => {
     const json = exportJSON();
     const encoded = btoa(encodeURIComponent(json));
-    navigator.clipboard.writeText(`${window.location.origin}?design=${encoded}`);
-    toast.success('Shareable URL copied');
+    navigator.clipboard.writeText(
+      `${window.location.origin}?design=${encoded}`,
+    );
+    toast.success("Shareable URL copied");
   };
 
   const handleImport = () => {
     importJSON(importText);
-    setImportOpen(false); setImportText('');
-    toast.success('Design imported');
+    setImportOpen(false);
+    setImportText("");
+    toast.success("Design imported");
   };
 
   const openExternalLink = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -82,7 +131,9 @@ export default function Toolbar() {
           <div className="p-1 rounded-md bg-primary/10">
             <Boxes className="w-4 h-4 text-primary" />
           </div>
-          <span className="text-sm font-bold tracking-tight text-foreground hidden sm:inline">System Designer</span>
+          <span className="text-sm font-bold tracking-tight text-foreground hidden sm:inline">
+            System Designer
+          </span>
         </RouterLink>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -100,20 +151,49 @@ export default function Toolbar() {
 
       {/* Undo/Redo */}
       <div className="flex items-center gap-0.5 border-r border-border pr-2 sm:mr-1">
-        <Tooltip><TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={undo}><Undo2 className="w-4 h-4" /></Button>
-        </TooltipTrigger><TooltipContent>Undo (Ctrl+Z)</TooltipContent></Tooltip>
-        <Tooltip><TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={redo}><Redo2 className="w-4 h-4" /></Button>
-        </TooltipTrigger><TooltipContent>Redo (Ctrl+Shift+Z)</TooltipContent></Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={undo}
+            >
+              <Undo2 className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={redo}
+            >
+              <Redo2 className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Redo (Ctrl+Shift+Z)</TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Layout */}
-      <Tooltip><TooltipTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={autoLayout} disabled={nodes.length === 0}>
-          <LayoutGrid className="w-4 h-4" />
-        </Button>
-      </TooltipTrigger><TooltipContent>Auto Layout</TooltipContent></Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={autoLayout}
+            disabled={nodes.length === 0}
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Auto Layout</TooltipContent>
+      </Tooltip>
 
       {/* Stats */}
       {nodes.length > 0 && (
@@ -133,9 +213,15 @@ export default function Toolbar() {
 
         <Dialog open={importOpen} onOpenChange={setImportOpen}>
           <DialogContent>
-            <DialogHeader><DialogTitle>Import Design</DialogTitle></DialogHeader>
-            <Textarea placeholder="Paste JSON here..." className="min-h-[200px] text-xs font-mono"
-              value={importText} onChange={(e) => setImportText(e.target.value)} />
+            <DialogHeader>
+              <DialogTitle>Import Design</DialogTitle>
+            </DialogHeader>
+            <Textarea
+              placeholder="Paste JSON here..."
+              className="min-h-[200px] text-xs font-mono"
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+            />
             <Button onClick={handleImport}>Import</Button>
           </DialogContent>
         </Dialog>
@@ -144,7 +230,11 @@ export default function Toolbar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-xs">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1.5 px-2 text-xs"
+                >
                   <Download className="w-4 h-4" />
                   <span className="hidden sm:inline">Actions</span>
                   <ChevronDown className="w-3 h-3 opacity-70" />
@@ -154,7 +244,9 @@ export default function Toolbar() {
             <TooltipContent>Import, export, and project links</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="text-xs text-muted-foreground">Design</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Design
+            </DropdownMenuLabel>
             <DropdownMenuItem onSelect={() => setImportOpen(true)}>
               <Upload className="mr-2 h-4 w-4" />
               Import JSON
@@ -172,7 +264,9 @@ export default function Toolbar() {
               Copy share URL
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel className="text-xs text-muted-foreground">Links</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Links
+            </DropdownMenuLabel>
             <DropdownMenuItem onSelect={() => openExternalLink(REPO_URL)}>
               <Github className="mr-2 h-4 w-4" />
               GitHub Repository
@@ -190,11 +284,19 @@ export default function Toolbar() {
 
         <div className="w-px h-5 bg-border mx-1" />
 
-        <Tooltip><TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={clearCanvas}>
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </TooltipTrigger><TooltipContent>Clear canvas</TooltipContent></Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={clearCanvas}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Clear canvas</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
