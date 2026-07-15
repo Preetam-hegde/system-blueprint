@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Play, Pause, SkipForward, RotateCcw, SlidersHorizontal, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { SavedSimulationPreset, SimulationScenarioType } from '@/types/system-design';
+import { useShallow } from 'zustand/react/shallow';
 
 const SIM_PRESET_STORAGE_KEY = 'sd-simulation-presets';
 const DEFAULT_SCENARIO_LATENCY_MS = 180;
@@ -38,10 +39,16 @@ const loadSavedPresets = (): SavedSimulationPreset[] => {
 };
 
 export default function SimulationControls() {
-  const {
-    simulation, setSimulation, updateNodeLoads, runAnalysis,
-    nodes, advanceSimulationStep, resetSimulationReplay, toggleNodeFailure,
-  } = useDesignStore();
+  const { simulation, setSimulation, updateNodeLoads, runAnalysis, nodes, advanceSimulationStep, resetSimulationReplay, toggleNodeFailure } = useDesignStore(useShallow((state) => ({
+    simulation: state.simulation,
+    setSimulation: state.setSimulation,
+    updateNodeLoads: state.updateNodeLoads,
+    runAnalysis: state.runAnalysis,
+    nodes: state.nodes,
+    advanceSimulationStep: state.advanceSimulationStep,
+    resetSimulationReplay: state.resetSimulationReplay,
+    toggleNodeFailure: state.toggleNodeFailure
+  })));
   const [simulationOpen, setSimulationOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [savedPresets, setSavedPresets] = useState<SavedSimulationPreset[]>(loadSavedPresets);

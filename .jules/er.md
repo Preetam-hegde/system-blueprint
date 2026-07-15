@@ -1,0 +1,2 @@
+- Use  with explicit object selectors from  when destructing multiple properties from Zustand stores to prevent unnecessary renders.
+- Use `useShallow` with explicit object selectors from `zustand/react/shallow` when destructing multiple properties from Zustand stores to prevent unnecessary renders.
