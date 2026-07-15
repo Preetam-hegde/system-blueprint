@@ -3,6 +3,7 @@ import { AlertTriangle, AlertCircle, Clock, CheckCircle2, ChevronUp, ChevronDown
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import SimulationControls from './SimulationControls';
+import { useShallow } from 'zustand/react/shallow';
 
 const ICON_MAP = {
   bottleneck: AlertCircle,
@@ -13,7 +14,12 @@ const ICON_MAP = {
 };
 
 export default function AnalysisPanel() {
-  const { warnings, nodes, edges, simulation } = useDesignStore();
+  const { warnings, nodes, edges, simulation } = useDesignStore(useShallow((state) => ({
+    warnings: state.warnings,
+    nodes: state.nodes,
+    edges: state.edges,
+    simulation: state.simulation
+  })));
   const [expanded, setExpanded] = useState(false);
 
   const criticalCount = warnings.filter((w) => w.severity === 'critical').length;
