@@ -6,6 +6,7 @@ import {
   type EdgeProps,
 } from '@xyflow/react';
 import { useDesignStore } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import type { EdgeConfig } from '@/types/system-design';
 import { PROTOCOL_KNOWLEDGE } from '@/types/system-design';
 import { getProtocolIcon } from './ProtocolBadge';
@@ -31,7 +32,10 @@ function SystemEdgeComponent({
   const info = PROTOCOL_KNOWLEDGE[protocol];
   const ProtocolIcon = getProtocolIcon(protocol);
   const color = info?.color ? `hsl(${info.color})` : 'hsl(var(--muted-foreground))';
-  const { mode, replayTrace } = useDesignStore((state) => state.simulation);
+  const { mode, replayTrace } = useDesignStore(useShallow((state) => ({
+    mode: state.simulation.mode,
+    replayTrace: state.simulation.replayTrace,
+  })));
 
   const isAsync = protocol === 'Pub/Sub' || protocol === 'AMQP';
   const isStream = protocol === 'WebSocket' || protocol === 'MQTT';
