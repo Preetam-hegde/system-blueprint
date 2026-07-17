@@ -15,6 +15,7 @@ import {
   Hammer, Clock3, Inbox, Radar, ChartNoAxesColumn, Bug, Key, Route,
 } from 'lucide-react';
 import type { SystemNodeType } from '@/types/system-design';
+import { useShallow } from 'zustand/react/shallow';
 
 const ICON_MAP: Record<SystemNodeType, React.ElementType> = {
   'server': Server, 'api-gateway': Shield, 'load-balancer': Globe,
@@ -36,7 +37,10 @@ function SystemNodeComponent({ data, selected, id }: NodeProps) {
   const d = data as unknown as SystemNodeData;
   const Icon = ICON_MAP[d.nodeType] || Server;
   const color = CATEGORY_COLORS[d.category] || '221 83% 53%';
-  const { mode, replayTrace } = useDesignStore((state) => state.simulation);
+  const { mode, replayTrace } = useDesignStore(useShallow(state => ({
+    mode: state.simulation.mode,
+    replayTrace: state.simulation.replayTrace
+  })));
   const loadPct = d.throughputLimit > 0 ? (d.currentLoad / d.throughputLimit) * 100 : 0;
   const isFailed = Boolean(d.isFailed);
   const isReplayMode = mode === 'replay';
