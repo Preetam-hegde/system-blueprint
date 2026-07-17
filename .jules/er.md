@@ -1,0 +1,1 @@
+Implemented useShallow with explicit object selectors for useDesignStore to prevent unnecessary re-renders when destructuring multiple properties, resolving the 'Zustand state management' enhancement from ER principles.
