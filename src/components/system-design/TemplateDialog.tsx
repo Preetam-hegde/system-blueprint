@@ -22,6 +22,7 @@ import type { Edge, Node } from '@xyflow/react';
 import type { EdgeConfig, NodeCategory, SystemNodeType } from '@/types/system-design';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useShallow } from 'zustand/react/shallow';
 
 type TemplateNode = Node<Record<string, unknown>, 'systemNode'>;
 type TemplateEdge = Edge<Record<string, unknown>, 'systemEdge'>;
@@ -462,7 +463,9 @@ interface TemplateDialogProps {
 }
 
 export default function TemplateDialog({ trigger = 'default' }: TemplateDialogProps) {
-  const { importJSON, clearCanvas } = useDesignStore();
+  const {
+    importJSON, clearCanvas
+  } = useDesignStore(useShallow((state) => ({ importJSON: state.importJSON, clearCanvas: state.clearCanvas })));
   const [open, setOpen] = useState(false);
   const [activeTag, setActiveTag] = useState<string>('all');
 
