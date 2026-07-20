@@ -6,6 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { BarChart3 } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 
 const usd = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -17,7 +18,9 @@ export default function CapacityPlannerDialog() {
   const [open, setOpen] = useState(false);
   const [growthFactor, setGrowthFactor] = useState(1.5);
   const [trafficSpikeMultiplier, setTrafficSpikeMultiplier] = useState(1.25);
-  const { nodes, buildCapacityPlan } = useDesignStore();
+  const {
+    nodes, buildCapacityPlan
+  } = useDesignStore(useShallow((state) => ({ nodes: state.nodes, buildCapacityPlan: state.buildCapacityPlan })));
 
   const plan = buildCapacityPlan(growthFactor, trafficSpikeMultiplier);
 
