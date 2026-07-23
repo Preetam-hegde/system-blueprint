@@ -1,4 +1,5 @@
 import { useDesignStore } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import { getNodeCatalogItem, PROTOCOL_KNOWLEDGE } from '@/types/system-design';
 import type { EdgeConfig, ConnectionProtocol } from '@/types/system-design';
 import type { SystemNodeData } from '@/store/useDesignStore';
@@ -28,7 +29,18 @@ interface NodeConfigPanelProps {
 }
 
 export default function NodeConfigPanel({ mobile = false }: NodeConfigPanelProps) {
-  const { nodes, edges, selectedNodeId, selectedEdgeId, selectNode, selectEdge, updateNodeConfig, updateEdgeConfig, deleteSelected, duplicateNode } = useDesignStore();
+  const { nodes, edges, selectedNodeId, selectedEdgeId, selectNode, selectEdge, updateNodeConfig, updateEdgeConfig, deleteSelected, duplicateNode } = useDesignStore(useShallow((state) => ({
+    nodes: state.nodes,
+    edges: state.edges,
+    selectedNodeId: state.selectedNodeId,
+    selectedEdgeId: state.selectedEdgeId,
+    selectNode: state.selectNode,
+    selectEdge: state.selectEdge,
+    updateNodeConfig: state.updateNodeConfig,
+    updateEdgeConfig: state.updateEdgeConfig,
+    deleteSelected: state.deleteSelected,
+    duplicateNode: state.duplicateNode,
+  })));
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
   const selectedEdge = edges.find((e) => e.id === selectedEdgeId);
