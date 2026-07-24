@@ -1,4 +1,5 @@
 import { useDesignStore } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useReactFlow } from '@xyflow/react';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { SystemNodeData } from '@/store/useDesignStore';
@@ -18,7 +19,7 @@ interface Packet {
 }
 
 export default function AnimatedPackets() {
-  const { edges, nodes, simulation } = useDesignStore();
+  const { edges, nodes, running, speed, rps, mode, failedNodeIds, scenario } = useDesignStore(useShallow(state => ({ edges: state.edges, nodes: state.nodes, running: state.simulation.running, speed: state.simulation.speed, rps: state.simulation.rps, mode: state.simulation.mode, failedNodeIds: state.simulation.failedNodeIds, scenario: state.simulation.scenario })));
   const [packets, setPackets] = useState<Packet[]>([]);
   const reactFlow = useReactFlow();
   const viewportRef = useRef({ x: 0, y: 0, zoom: 1 });
@@ -50,12 +51,12 @@ export default function AnimatedPackets() {
 
   // Spawn packets
   useEffect(() => {
-    if (!simulation.running || edges.length === 0) {
+    if (!running || edges.length === 0) {
       setPackets([]);
       return;
     }
 
-    const failed = new Set(simulation.failedNodeIds);
+    const failed = new Set(failedNodeIds);
     const activeEdges = edges.filter((e) => !failed.has(e.source) && !failed.has(e.target));
     if (activeEdges.length === 0) {
       setPackets([]);
@@ -77,16 +78,16 @@ export default function AnimatedPackets() {
       const targetNode = nodes.find((node) => node.id === randomEdge.target);
       const sourceData = sourceNode?.data as SystemNodeData | undefined;
       const targetData = targetNode?.data as SystemNodeData | undefined;
-      const touchesLatencyRegion = simulation.scenario.type === 'regional-latency'
-        && simulation.scenario.region
-        && (sourceData?.region === simulation.scenario.region || targetData?.region === simulation.scenario.region);
-      const touchesBacklog = simulation.scenario.type === 'queue-backlog'
-        && Boolean(simulation.scenario.queueNodeIds?.includes(randomEdge.source) || simulation.scenario.queueNodeIds?.includes(randomEdge.target));
+      const touchesLatencyRegion = scenario.type === 'regional-latency'
+        && scenario.region
+        && (sourceData?.region === scenario.region || targetData?.region === scenario.region);
+      const touchesBacklog = scenario.type === 'queue-backlog'
+        && Boolean(scenario.queueNodeIds?.includes(randomEdge.source) || scenario.queueNodeIds?.includes(randomEdge.target));
       const regionalSpeedScale = touchesLatencyRegion
-        ? Math.max(0.35, 1 - (simulation.scenario.latencyMs ?? 150) / 500)
+        ? Math.max(0.35, 1 - (scenario.latencyMs ?? 150) / 500)
         : 1;
       const backlogSpeedScale = touchesBacklog
-        ? Math.max(0.4, 1 - (simulation.scenario.backlogSeverity ?? 65) / 120)
+        ? Math.max(0.4, 1 - (scenario.backlogSeverity ?? 65) / 120)
         : 1;
 
       setPackets((prev) => [
@@ -104,14 +105,14 @@ export default function AnimatedPackets() {
           trail: [],
         },
       ]);
-    }, Math.max(60, 600 / simulation.speed / Math.max(simulation.rps / 50, 1)));
+    }, Math.max(60, 600 / speed / Math.max(rps / 50, 1)));
 
     return () => clearInterval(interval);
-  }, [simulation.running, simulation.speed, simulation.rps, simulation.failedNodeIds, simulation.scenario, edges, nodes, getNodeCenter]);
+  }, [running, speed, rps, failedNodeIds, scenario, edges, nodes, getNodeCenter]);
 
   // Animate packets
   useEffect(() => {
-    if (!simulation.running) return;
+    if (!running) return;
 
     const frame = () => {
       setPackets((prev) =>
@@ -119,7 +120,7 @@ export default function AnimatedPackets() {
           .map((p) => ({
             ...p,
             trail: [...p.trail.slice(-4), p.progress],
-            progress: p.progress + 0.018 * simulation.speed * p.speedScale * (simulation.mode === 'replay' ? 0.75 : 1),
+            progress: p.progress + 0.018 * speed * p.speedScale * (mode === 'replay' ? 0.75 : 1),
           }))
           .filter((p) => p.progress <= 1)
       );
@@ -127,9 +128,9 @@ export default function AnimatedPackets() {
     };
     let rafRef = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(rafRef);
-  }, [simulation.running, simulation.speed, simulation.mode]);
+  }, [running, speed, mode]);
 
-  if (!simulation.running || packets.length === 0) return null;
+  if (!running || packets.length === 0) return null;
 
   const vp = viewportRef.current;
 

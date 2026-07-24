@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDesignStore, type SystemNodeData } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
@@ -39,9 +40,13 @@ const loadSavedPresets = (): SavedSimulationPreset[] => {
 
 export default function SimulationControls() {
   const {
-    simulation, setSimulation, updateNodeLoads, runAnalysis,
-    nodes, advanceSimulationStep, resetSimulationReplay, toggleNodeFailure,
-  } = useDesignStore();
+    setSimulation, updateNodeLoads, runAnalysis, nodes, advanceSimulationStep, resetSimulationReplay, toggleNodeFailure,
+    running, speed, rps, mode, step, maxSteps, packetLossPct, retryAttempts, retryBackoffMs, extraLatencyMs, manualFailedNodeIds, failedNodeIds, scenario, replayTrace,
+  } = useDesignStore(useShallow(state => ({
+    setSimulation: state.setSimulation, updateNodeLoads: state.updateNodeLoads, runAnalysis: state.runAnalysis, nodes: state.nodes, advanceSimulationStep: state.advanceSimulationStep, resetSimulationReplay: state.resetSimulationReplay, toggleNodeFailure: state.toggleNodeFailure,
+    running: state.simulation.running, speed: state.simulation.speed, rps: state.simulation.rps, mode: state.simulation.mode, step: state.simulation.step, maxSteps: state.simulation.maxSteps, packetLossPct: state.simulation.packetLossPct, retryAttempts: state.simulation.retryAttempts, retryBackoffMs: state.simulation.retryBackoffMs, extraLatencyMs: state.simulation.extraLatencyMs, manualFailedNodeIds: state.simulation.manualFailedNodeIds, failedNodeIds: state.simulation.failedNodeIds, scenario: state.simulation.scenario, replayTrace: state.simulation.replayTrace
+  })));
+
   const [simulationOpen, setSimulationOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [savedPresets, setSavedPresets] = useState<SavedSimulationPreset[]>(loadSavedPresets);
@@ -52,12 +57,11 @@ export default function SimulationControls() {
   const getNodeData = (node: typeof nodes[number]) => node.data as unknown as SystemNodeData;
   const regions = [...new Set(nodes.map((node) => getNodeData(node).region).filter(Boolean))].sort();
   const messagingNodes = nodes.filter((node) => getNodeData(node).category === 'messaging');
-  const manualFailedSet = new Set(simulation.manualFailedNodeIds);
-  const scenarioFailedSet = new Set(simulation.failedNodeIds.filter((id) => !manualFailedSet.has(id)));
-  const simulationModeLabel = simulation.mode === 'replay' ? `Replay ${simulation.step}/${simulation.maxSteps}` : 'Live';
-  const replayProgressPct = Math.round((simulation.step / Math.max(simulation.maxSteps, 1)) * 100);
-  const activeScenarioLabel = getScenarioLabel(simulation.scenario.type);
-  const replayTrace = simulation.replayTrace;
+  const manualFailedSet = new Set(manualFailedNodeIds);
+  const scenarioFailedSet = new Set(failedNodeIds.filter((id) => !manualFailedSet.has(id)));
+  const simulationModeLabel = mode === 'replay' ? `Replay ${step}/${maxSteps}` : 'Live';
+  const replayProgressPct = Math.round((step / Math.max(maxSteps, 1)) * 100);
+  const activeScenarioLabel = getScenarioLabel(scenario.type);
 
   const clearTimers = () => {
     if (intervalRef.current) {
@@ -75,12 +79,12 @@ export default function SimulationControls() {
   }, [savedPresets]);
 
   useEffect(() => {
-    if (!simulation.running) {
+    if (!running) {
       clearTimers();
       return;
     }
 
-    const tickMs = Math.max(100, 1000 / Math.max(simulation.speed, 0.5));
+    const tickMs = Math.max(100, 1000 / Math.max(speed, 0.5));
     intervalRef.current = window.setInterval(() => {
       const state = useDesignStore.getState();
       if (state.simulation.mode === 'replay') {
@@ -93,7 +97,7 @@ export default function SimulationControls() {
 
     elapsedRef.current = window.setInterval(() => setElapsed((t) => t + 1), 1000);
     return () => clearTimers();
-  }, [simulation.running, simulation.speed, simulation.mode]);
+  }, [running, speed, mode]);
 
   const applySimulationChanges = (changes: Parameters<typeof setSimulation>[0]) => {
     setSimulation(changes);
@@ -102,14 +106,14 @@ export default function SimulationControls() {
   };
 
   const toggleSimulation = () => {
-    if (simulation.running) {
+    if (running) {
       setSimulation({ running: false });
       clearTimers();
       return;
     }
 
-    const replayReset = simulation.mode === 'replay' && simulation.step >= simulation.maxSteps;
-    setSimulation({ running: true, step: replayReset ? 0 : simulation.step });
+    const replayReset = mode === 'replay' && step >= maxSteps;
+    setSimulation({ running: true, step: replayReset ? 0 : step });
     if (elapsed === 0 || replayReset) setElapsed(0);
     updateNodeLoads();
     runAnalysis();
@@ -136,7 +140,7 @@ export default function SimulationControls() {
       applySimulationChanges({
         scenario: {
           type,
-          region: simulation.scenario.region || regions[0] || 'us-east-1',
+          region: scenario.region || regions[0] || 'us-east-1',
         },
       });
       return;
@@ -146,8 +150,8 @@ export default function SimulationControls() {
       applySimulationChanges({
         scenario: {
           type,
-          region: simulation.scenario.region || regions[0] || 'us-east-1',
-          latencyMs: simulation.scenario.latencyMs || DEFAULT_SCENARIO_LATENCY_MS,
+          region: scenario.region || regions[0] || 'us-east-1',
+          latencyMs: scenario.latencyMs || DEFAULT_SCENARIO_LATENCY_MS,
         },
       });
       return;
@@ -156,10 +160,10 @@ export default function SimulationControls() {
     applySimulationChanges({
       scenario: {
         type,
-        queueNodeIds: simulation.scenario.queueNodeIds?.length
-          ? simulation.scenario.queueNodeIds
+        queueNodeIds: scenario.queueNodeIds?.length
+          ? scenario.queueNodeIds
           : (messagingNodes[0] ? [messagingNodes[0].id] : []),
-        backlogSeverity: simulation.scenario.backlogSeverity || DEFAULT_BACKLOG_SEVERITY,
+        backlogSeverity: scenario.backlogSeverity || DEFAULT_BACKLOG_SEVERITY,
       },
     });
   };
@@ -171,16 +175,16 @@ export default function SimulationControls() {
       name,
       createdAt: new Date().toISOString(),
       simulation: {
-        speed: simulation.speed,
-        rps: simulation.rps,
-        mode: simulation.mode,
-        maxSteps: simulation.maxSteps,
-        packetLossPct: simulation.packetLossPct,
-        retryAttempts: simulation.retryAttempts,
-        retryBackoffMs: simulation.retryBackoffMs,
-        extraLatencyMs: simulation.extraLatencyMs,
-        manualFailedNodeIds: simulation.manualFailedNodeIds,
-        scenario: simulation.scenario,
+        speed: speed,
+        rps: rps,
+        mode: mode,
+        maxSteps: maxSteps,
+        packetLossPct: packetLossPct,
+        retryAttempts: retryAttempts,
+        retryBackoffMs: retryBackoffMs,
+        extraLatencyMs: extraLatencyMs,
+        manualFailedNodeIds: manualFailedNodeIds,
+        scenario: scenario,
       },
     };
     setSavedPresets((current) => [preset, ...current].slice(0, 8));
@@ -209,7 +213,7 @@ export default function SimulationControls() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center rounded-lg border border-border bg-background p-0.5">
           <Button
-            variant={simulation.mode === 'live' ? 'secondary' : 'ghost'}
+            variant={mode === 'live' ? 'secondary' : 'ghost'}
             size="sm"
             className="h-7 px-2.5 text-[10px]"
             onClick={() => switchSimulationMode('live')}
@@ -217,7 +221,7 @@ export default function SimulationControls() {
             Live
           </Button>
           <Button
-            variant={simulation.mode === 'replay' ? 'secondary' : 'ghost'}
+            variant={mode === 'replay' ? 'secondary' : 'ghost'}
             size="sm"
             className="h-7 px-2.5 text-[10px]"
             onClick={() => switchSimulationMode('replay')}
@@ -226,21 +230,21 @@ export default function SimulationControls() {
           </Button>
         </div>
         <Button
-          variant={simulation.running ? 'destructive' : 'default'}
+          variant={running ? 'destructive' : 'default'}
           size="sm"
           className="h-8 gap-1.5 text-xs font-semibold"
           onClick={toggleSimulation}
         >
-          {simulation.running ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-          {simulation.running ? 'Stop' : 'Simulate'}
+          {running ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+          {running ? 'Stop' : 'Simulate'}
         </Button>
-        {simulation.running && (
+        {running && (
           <span className="text-[10px] font-mono text-muted-foreground">{formatTime(elapsed)}</span>
         )}
         <Badge variant="outline" className="text-[10px] h-5 px-1.5">
           {simulationModeLabel}
         </Badge>
-        {simulation.scenario.type !== 'none' && (
+        {scenario.type !== 'none' && (
           <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
             {activeScenarioLabel}
           </Badge>
@@ -250,11 +254,11 @@ export default function SimulationControls() {
           <Input
             type="number"
             className="h-7 w-16 text-xs"
-            value={simulation.rps}
+            value={rps}
             onChange={(e) => setSimulation({ rps: +e.target.value })}
           />
         </div>
-        {simulation.mode === 'replay' && (
+        {mode === 'replay' && (
           <>
             <div className="w-24">
               <div className="h-1.5 overflow-hidden rounded-full bg-muted">
@@ -262,14 +266,14 @@ export default function SimulationControls() {
               </div>
             </div>
             <span className="min-w-12 text-[10px] font-mono text-muted-foreground">
-              {simulation.step}/{simulation.maxSteps}
+              {step}/{maxSteps}
             </span>
             <Button
               variant="outline"
               size="sm"
               className="h-7 px-2 text-[10px]"
               onClick={advanceSimulationStep}
-              disabled={simulation.running || simulation.step >= simulation.maxSteps}
+              disabled={running || step >= maxSteps}
             >
               <SkipForward className="mr-1 h-3.5 w-3.5" />
               Step
@@ -316,14 +320,14 @@ export default function SimulationControls() {
                   <div>
                     <div className="text-sm font-medium text-foreground">Current mode</div>
                     <div className="mt-0.5 text-xs text-muted-foreground">
-                      {simulation.mode === 'replay'
+                      {mode === 'replay'
                         ? 'Replay state is controlled from the bottom bar so progress stays visible.'
                         : 'Live mode continuously recomputes loads while simulation is running.'}
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center justify-end gap-1.5">
                     <Badge variant="outline" className="text-[10px] h-5">{simulationModeLabel}</Badge>
-                    {simulation.scenario.type !== 'none' && (
+                    {scenario.type !== 'none' && (
                       <Badge variant="secondary" className="text-[10px] h-5">{activeScenarioLabel}</Badge>
                     )}
                   </div>
@@ -333,36 +337,36 @@ export default function SimulationControls() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Speed</span>
-                  <Badge variant="secondary" className="text-[10px] h-5">{simulation.speed}x</Badge>
+                  <Badge variant="secondary" className="text-[10px] h-5">{speed}x</Badge>
                 </div>
-                <Slider value={[simulation.speed]} min={0.5} max={5} step={0.5} onValueChange={([v]) => applySimulationChanges({ speed: v })} />
+                <Slider value={[speed]} min={0.5} max={5} step={0.5} onValueChange={([v]) => applySimulationChanges({ speed: v })} />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <span className="text-xs text-muted-foreground">Packet loss (%)</span>
-                  <Input type="number" min={0} max={100} className="h-8 text-xs" value={simulation.packetLossPct} onChange={(e) => applySimulationChanges({ packetLossPct: Math.max(0, Math.min(100, +e.target.value || 0)) })} />
+                  <Input type="number" min={0} max={100} className="h-8 text-xs" value={packetLossPct} onChange={(e) => applySimulationChanges({ packetLossPct: Math.max(0, Math.min(100, +e.target.value || 0)) })} />
                 </div>
                 <div className="space-y-1.5">
                   <span className="text-xs text-muted-foreground">Extra latency (ms)</span>
-                  <Input type="number" min={0} className="h-8 text-xs" value={simulation.extraLatencyMs} onChange={(e) => applySimulationChanges({ extraLatencyMs: Math.max(0, +e.target.value || 0) })} />
+                  <Input type="number" min={0} className="h-8 text-xs" value={extraLatencyMs} onChange={(e) => applySimulationChanges({ extraLatencyMs: Math.max(0, +e.target.value || 0) })} />
                 </div>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <span className="text-xs text-muted-foreground">Retry attempts</span>
-                  <Input type="number" min={0} max={5} className="h-8 text-xs" value={simulation.retryAttempts} onChange={(e) => applySimulationChanges({ retryAttempts: Math.max(0, Math.min(5, +e.target.value || 0)) })} />
+                  <Input type="number" min={0} max={5} className="h-8 text-xs" value={retryAttempts} onChange={(e) => applySimulationChanges({ retryAttempts: Math.max(0, Math.min(5, +e.target.value || 0)) })} />
                 </div>
                 <div className="space-y-1.5">
                   <span className="text-xs text-muted-foreground">Retry backoff (ms)</span>
-                  <Input type="number" min={0} className="h-8 text-xs" value={simulation.retryBackoffMs} onChange={(e) => applySimulationChanges({ retryBackoffMs: Math.max(0, +e.target.value || 0) })} />
+                  <Input type="number" min={0} className="h-8 text-xs" value={retryBackoffMs} onChange={(e) => applySimulationChanges({ retryBackoffMs: Math.max(0, +e.target.value || 0) })} />
                 </div>
               </div>
 
               <div className="rounded-lg border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-                Replay estimate: <span className="font-semibold text-foreground">{simulation.replayTrace.estimatedRetries}</span> retries and
-                <span className="font-semibold text-foreground"> {simulation.replayTrace.totalLatencyMs}ms</span> request latency.
+                Replay estimate: <span className="font-semibold text-foreground">{replayTrace.estimatedRetries}</span> retries and
+                <span className="font-semibold text-foreground"> {replayTrace.totalLatencyMs}ms</span> request latency.
               </div>
 
               <div className="space-y-3 rounded-lg border border-border p-3">
@@ -376,7 +380,7 @@ export default function SimulationControls() {
 
                 <div className="space-y-1.5">
                   <span className="text-xs text-muted-foreground">Scenario type</span>
-                  <Select value={simulation.scenario.type} onValueChange={(value) => updateScenarioType(value as SimulationScenarioType)}>
+                  <Select value={scenario.type} onValueChange={(value) => updateScenarioType(value as SimulationScenarioType)}>
                     <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
@@ -387,10 +391,10 @@ export default function SimulationControls() {
                   </Select>
                 </div>
 
-                {simulation.scenario.type === 'zone-outage' && (
+                {scenario.type === 'zone-outage' && (
                   <div className="space-y-1.5">
                     <span className="text-xs text-muted-foreground">Impacted region</span>
-                    <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { region: value } })}>
+                    <Select value={scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { region: value } })}>
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {(regions.length > 0 ? regions : ['us-east-1']).map((region) => (
@@ -401,11 +405,11 @@ export default function SimulationControls() {
                   </div>
                 )}
 
-                {simulation.scenario.type === 'regional-latency' && (
+                {scenario.type === 'regional-latency' && (
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <span className="text-xs text-muted-foreground">Affected region</span>
-                      <Select value={simulation.scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { region: value } })}>
+                      <Select value={scenario.region || regions[0] || 'us-east-1'} onValueChange={(value) => applySimulationChanges({ scenario: { region: value } })}>
                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {(regions.length > 0 ? regions : ['us-east-1']).map((region) => (
@@ -416,17 +420,17 @@ export default function SimulationControls() {
                     </div>
                     <div className="space-y-1.5">
                       <span className="text-xs text-muted-foreground">Added latency (ms)</span>
-                      <Input type="number" min={0} className="h-8 text-xs" value={simulation.scenario.latencyMs ?? DEFAULT_SCENARIO_LATENCY_MS} onChange={(e) => applySimulationChanges({ scenario: { latencyMs: Math.max(0, +e.target.value || 0) } })} />
+                      <Input type="number" min={0} className="h-8 text-xs" value={scenario.latencyMs ?? DEFAULT_SCENARIO_LATENCY_MS} onChange={(e) => applySimulationChanges({ scenario: { latencyMs: Math.max(0, +e.target.value || 0) } })} />
                     </div>
                   </div>
                 )}
 
-                {simulation.scenario.type === 'queue-backlog' && (
+                {scenario.type === 'queue-backlog' && (
                   <div className="space-y-3">
                     <div className="space-y-1.5">
                       <span className="text-xs text-muted-foreground">Backlogged queue or bus</span>
                       <Select
-                        value={simulation.scenario.queueNodeIds?.[0] || messagingNodes[0]?.id || 'none'}
+                        value={scenario.queueNodeIds?.[0] || messagingNodes[0]?.id || 'none'}
                         onValueChange={(value) => applySimulationChanges({ scenario: { queueNodeIds: value === 'none' ? [] : [value] } })}
                         disabled={messagingNodes.length === 0}
                       >
@@ -446,9 +450,9 @@ export default function SimulationControls() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-muted-foreground">Backlog severity</span>
-                        <Badge variant="secondary" className="text-[10px] h-5">{simulation.scenario.backlogSeverity ?? DEFAULT_BACKLOG_SEVERITY}%</Badge>
+                        <Badge variant="secondary" className="text-[10px] h-5">{scenario.backlogSeverity ?? DEFAULT_BACKLOG_SEVERITY}%</Badge>
                       </div>
-                      <Slider value={[simulation.scenario.backlogSeverity ?? DEFAULT_BACKLOG_SEVERITY]} min={20} max={90} step={5} onValueChange={([value]) => applySimulationChanges({ scenario: { backlogSeverity: value } })} />
+                      <Slider value={[scenario.backlogSeverity ?? DEFAULT_BACKLOG_SEVERITY]} min={20} max={90} step={5} onValueChange={([value]) => applySimulationChanges({ scenario: { backlogSeverity: value } })} />
                     </div>
                   </div>
                 )}
@@ -459,7 +463,7 @@ export default function SimulationControls() {
                   <span>Manual node failures</span>
                   <div className="flex items-center gap-1.5">
                     {scenarioFailedSet.size > 0 && <Badge variant="outline" className="text-[10px] h-5">{scenarioFailedSet.size} scenario</Badge>}
-                    {simulation.manualFailedNodeIds.length > 0 && <Badge variant="destructive" className="text-[10px] h-5">{simulation.manualFailedNodeIds.length} manual</Badge>}
+                    {manualFailedNodeIds.length > 0 && <Badge variant="destructive" className="text-[10px] h-5">{manualFailedNodeIds.length} manual</Badge>}
                   </div>
                 </div>
                 <div className="max-h-36 space-y-1.5 overflow-y-auto rounded-lg border border-border p-2">
