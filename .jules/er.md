@@ -1,0 +1,1 @@
+- Zustand optimization: returning an object of properties wrapped in `useShallow` from `useDesignStore` instead of destructuring the whole store prevents massive re-renders across the app, especially since the `simulation` object updates frequently.
