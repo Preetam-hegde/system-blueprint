@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useDesignStore } from '@/store/useDesignStore';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -30,8 +31,19 @@ const REPO_URL = 'https://github.com/Preetam-hegde/system-blueprint';
 
 export default function Toolbar() {
   const {
-    undo, redo, exportJSON, importJSON, clearCanvas, nodes, edges, autoLayout,
-  } = useDesignStore();
+    undo, redo, exportJSON, importJSON, clearCanvas, nodes, edges, autoLayout
+  } = useDesignStore(
+    useShallow((state) => ({
+      undo: state.undo,
+      redo: state.redo,
+      exportJSON: state.exportJSON,
+      importJSON: state.importJSON,
+      clearCanvas: state.clearCanvas,
+      nodes: state.nodes,
+      edges: state.edges,
+      autoLayout: state.autoLayout
+    }))
+  );
   const [importText, setImportText] = useState('');
   const [importOpen, setImportOpen] = useState(false);
 
