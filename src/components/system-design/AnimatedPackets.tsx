@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useDesignStore } from '@/store/useDesignStore';
 import { useReactFlow } from '@xyflow/react';
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -18,7 +19,13 @@ interface Packet {
 }
 
 export default function AnimatedPackets() {
-  const { edges, nodes, simulation } = useDesignStore();
+  const { edges, nodes, simulation } = useDesignStore(
+    useShallow((state) => ({
+      edges: state.edges,
+      nodes: state.nodes,
+      simulation: state.simulation,
+    }))
+  );
   const [packets, setPackets] = useState<Packet[]>([]);
   const reactFlow = useReactFlow();
   const viewportRef = useRef({ x: 0, y: 0, zoom: 1 });

@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useState } from 'react';
 import { useDesignStore } from '@/store/useDesignStore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -17,7 +18,12 @@ export default function CapacityPlannerDialog() {
   const [open, setOpen] = useState(false);
   const [growthFactor, setGrowthFactor] = useState(1.5);
   const [trafficSpikeMultiplier, setTrafficSpikeMultiplier] = useState(1.25);
-  const { nodes, buildCapacityPlan } = useDesignStore();
+  const { nodes, buildCapacityPlan } = useDesignStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      buildCapacityPlan: state.buildCapacityPlan,
+    }))
+  );
 
   const plan = buildCapacityPlan(growthFactor, trafficSpikeMultiplier);
 

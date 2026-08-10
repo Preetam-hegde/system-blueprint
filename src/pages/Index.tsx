@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ReactFlow,
@@ -30,7 +31,21 @@ export default function Index() {
   const {
     nodes, edges, onNodesChange, onEdgesChange, onConnect,
     addNode, selectNode, selectEdge, importJSON, selectedNodeId, selectedEdgeId,
-  } = useDesignStore();
+  } = useDesignStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      edges: state.edges,
+      onNodesChange: state.onNodesChange,
+      onEdgesChange: state.onEdgesChange,
+      onConnect: state.onConnect,
+      addNode: state.addNode,
+      selectNode: state.selectNode,
+      selectEdge: state.selectEdge,
+      importJSON: state.importJSON,
+      selectedNodeId: state.selectedNodeId,
+      selectedEdgeId: state.selectedEdgeId,
+    }))
+  );
 
   const reactFlowRef = useRef<ReactFlowInstance | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
