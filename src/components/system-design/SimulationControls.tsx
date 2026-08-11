@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDesignStore, type SystemNodeData } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
@@ -41,7 +42,12 @@ export default function SimulationControls() {
   const {
     simulation, setSimulation, updateNodeLoads, runAnalysis,
     nodes, advanceSimulationStep, resetSimulationReplay, toggleNodeFailure,
-  } = useDesignStore();
+  } = useDesignStore(useShallow((state) => ({
+    simulation: state.simulation, setSimulation: state.setSimulation,
+    updateNodeLoads: state.updateNodeLoads, runAnalysis: state.runAnalysis,
+    nodes: state.nodes, advanceSimulationStep: state.advanceSimulationStep,
+    resetSimulationReplay: state.resetSimulationReplay, toggleNodeFailure: state.toggleNodeFailure,
+  })));
   const [simulationOpen, setSimulationOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [savedPresets, setSavedPresets] = useState<SavedSimulationPreset[]>(loadSavedPresets);
