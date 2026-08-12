@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import type { ElementType } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -462,7 +463,7 @@ interface TemplateDialogProps {
 }
 
 export default function TemplateDialog({ trigger = 'default' }: TemplateDialogProps) {
-  const { importJSON, clearCanvas } = useDesignStore();
+  const { importJSON, clearCanvas } = useDesignStore(useShallow((state) => ({ importJSON: state.importJSON, clearCanvas: state.clearCanvas })));
   const [open, setOpen] = useState(false);
   const [activeTag, setActiveTag] = useState<string>('all');
 
