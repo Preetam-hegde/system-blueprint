@@ -1,5 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Keyboard } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Keyboard } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -7,11 +12,14 @@ interface Props {
 }
 
 const SHORTCUTS = [
-  { keys: ['Delete', 'Backspace'], description: 'Delete selected node or edge' },
-  { keys: ['Ctrl', 'Z'], description: 'Undo' },
-  { keys: ['Ctrl', 'Shift', 'Z'], description: 'Redo' },
-  { keys: ['?'], description: 'Show keyboard shortcuts' },
-  { keys: ['Escape'], description: 'Deselect all' },
+  {
+    keys: ["Delete", "Backspace"],
+    description: "Delete selected node or edge",
+  },
+  { keys: ["Ctrl", "Z"], description: "Undo" },
+  { keys: ["Ctrl", "Shift", "Z"], description: "Redo" },
+  { keys: ["?"], description: "Show keyboard shortcuts" },
+  { keys: ["Escape"], description: "Deselect all" },
 ];
 
 export default function KeyboardShortcuts({ open, onOpenChange }: Props) {
@@ -27,7 +35,9 @@ export default function KeyboardShortcuts({ open, onOpenChange }: Props) {
         <div className="space-y-2 mt-2">
           {SHORTCUTS.map((s, i) => (
             <div key={i} className="flex items-center justify-between py-1.5">
-              <span className="text-sm text-muted-foreground">{s.description}</span>
+              <span className="text-sm text-muted-foreground">
+                {s.description}
+              </span>
               <div className="flex items-center gap-1">
                 {s.keys.map((k) => (
                   <kbd

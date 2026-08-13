@@ -1,7 +1,11 @@
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Info } from 'lucide-react';
-import type { ConnectionProtocol } from '@/types/system-design';
-import ProtocolInfoContent from './ProtocolInfoContent';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Info } from "lucide-react";
+import type { ConnectionProtocol } from "@/types/system-design";
+import ProtocolInfoContent from "./ProtocolInfoContent";
 
 interface Props {
   protocol: ConnectionProtocol;
