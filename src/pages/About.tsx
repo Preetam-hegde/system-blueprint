@@ -1,10 +1,17 @@
-import { motion } from 'framer-motion';
-import { ArrowUpRight, Boxes, Code2, ExternalLink, Globe2, Layers3 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { motion } from "framer-motion";
+import {
+  ArrowUpRight,
+  Boxes,
+  Code2,
+  ExternalLink,
+  Globe2,
+  Layers3,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
-const PORTFOLIO_URL = 'https://preetamhegde.in';
-const INKWELL_URL = 'https://inkwell.preetamhegde.in';
-const REPO_URL = 'https://github.com/Preetam-hegde/system-blueprint';
+const PORTFOLIO_URL = "https://preetamhegde.in";
+const INKWELL_URL = "https://inkwell.preetamhegde.in";
+const REPO_URL = "https://github.com/Preetam-hegde/system-blueprint";
 
 const reveal = {
   hidden: { opacity: 0, y: 22 },
@@ -71,24 +78,38 @@ export default function About() {
           <main className="flex flex-1 items-center py-10 sm:py-14">
             <div className="grid w-full gap-10 lg:grid-cols-[1.15fr_.85fr] lg:gap-14">
               <section className="space-y-8">
-                <motion.div custom={0.08} initial="hidden" animate="visible" variants={reveal}>
+                <motion.div
+                  custom={0.08}
+                  initial="hidden"
+                  animate="visible"
+                  variants={reveal}
+                >
                   <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
                     <Code2 className="h-3.5 w-3.5" />
                     About The Builder
                   </div>
                 </motion.div>
 
-                <motion.div custom={0.16} initial="hidden" animate="visible" variants={reveal} className="space-y-4">
+                <motion.div
+                  custom={0.16}
+                  initial="hidden"
+                  animate="visible"
+                  variants={reveal}
+                  className="space-y-4"
+                >
                   <h1 className="max-w-3xl text-5xl font-black tracking-[-0.06em] text-balance sm:text-6xl lg:text-7xl">
                     Preetam Hegde
                   </h1>
                   <p className="max-w-xl text-xl font-medium text-muted-foreground sm:text-2xl">
-                    Building products where software architecture becomes clear, testable, and easy to communicate.
+                    Building products where software architecture becomes clear,
+                    testable, and easy to communicate.
                   </p>
                   <p className="max-w-2xl text-base leading-7 text-foreground/80 dark:text-foreground/78 sm:text-lg">
-                    I focus on developer-first experiences: tools that help teams design better systems,
-                    reason about trade-offs, and move from whiteboard ideas to practical implementation faster.
-                    System Blueprint is one expression of that direction.
+                    I focus on developer-first experiences: tools that help
+                    teams design better systems, reason about trade-offs, and
+                    move from whiteboard ideas to practical implementation
+                    faster. System Blueprint is one expression of that
+                    direction.
                   </p>
                 </motion.div>
 
@@ -143,29 +164,59 @@ export default function About() {
                   className="grid gap-5 border-t border-border/60 pt-8 sm:grid-cols-3"
                 >
                   <div className="space-y-2">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Role</div>
-                    <div className="text-sm font-medium text-foreground">Preetam Hegde</div>
-                    <div className="text-sm text-muted-foreground">Product-focused software developer</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Role
+                    </div>
+                    <div className="text-sm font-medium text-foreground">
+                      Preetam Hegde
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Product-focused software developer
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Primary Site</div>
-                    <div className="text-sm font-medium text-foreground">preetamhegde.in</div>
-                    <div className="text-sm text-muted-foreground">Projects, writing, and professional work</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Primary Site
+                    </div>
+                    <div className="text-sm font-medium text-foreground">
+                      preetamhegde.in
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Projects, writing, and professional work
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Writing</div>
-                    <div className="text-sm font-medium text-foreground">inkwell.preetamhegde.in</div>
-                    <div className="text-sm text-muted-foreground">Long-form notes, essays, and technical writing</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Writing
+                    </div>
+                    <div className="text-sm font-medium text-foreground">
+                      inkwell.preetamhegde.in
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Long-form notes, essays, and technical writing
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Current Focus</div>
-                    <div className="text-sm font-medium text-foreground">Architecture tooling</div>
-                    <div className="text-sm text-muted-foreground">Simulation, analysis, and design workflow UX</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Current Focus
+                    </div>
+                    <div className="text-sm font-medium text-foreground">
+                      Architecture tooling
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Simulation, analysis, and design workflow UX
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">GitHub</div>
-                    <div className="text-sm font-medium text-foreground">system-blueprint</div>
-                    <div className="text-sm text-muted-foreground">Open project for experimentation and iteration</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      GitHub
+                    </div>
+                    <div className="text-sm font-medium text-foreground">
+                      system-blueprint
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Open project for experimentation and iteration
+                    </div>
                   </div>
                 </motion.div>
               </section>
@@ -184,40 +235,61 @@ export default function About() {
                       <Globe2 className="h-6 w-6" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold tracking-tight">How I approach building</h2>
+                      <h2 className="text-2xl font-bold tracking-tight">
+                        How I approach building
+                      </h2>
                       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        I care about software that is practical under real load, understandable to teams,
-                        and polished enough for day-to-day use.
+                        I care about software that is practical under real load,
+                        understandable to teams, and polished enough for
+                        day-to-day use.
                       </p>
                     </div>
                   </div>
 
                   <div className="space-y-5">
                     <div className="border-b border-border/60 pb-5">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Core strengths</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        Core strengths
+                      </div>
                       <ul className="mt-3 space-y-2 text-sm leading-6 text-foreground/85">
-                        <li>Turning complex architecture into clear visual workflows.</li>
-                        <li>Designing interfaces that expose meaningful operational controls.</li>
-                        <li>Balancing technical depth with product usability.</li>
-                        <li>Building iteratively with feedback from real usage.</li>
+                        <li>
+                          Turning complex architecture into clear visual
+                          workflows.
+                        </li>
+                        <li>
+                          Designing interfaces that expose meaningful
+                          operational controls.
+                        </li>
+                        <li>
+                          Balancing technical depth with product usability.
+                        </li>
+                        <li>
+                          Building iteratively with feedback from real usage.
+                        </li>
                       </ul>
                     </div>
 
                     <div className="border-b border-border/60 pb-5">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">What System Blueprint is for</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        What System Blueprint is for
+                      </div>
                       <p className="mt-3 text-sm leading-6 text-foreground/85">
-                        This project helps teams map service dependencies, simulate operational stress,
-                        and discuss capacity and reliability decisions with shared context.
+                        This project helps teams map service dependencies,
+                        simulate operational stress, and discuss capacity and
+                        reliability decisions with shared context.
                       </p>
                     </div>
 
                     <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Get in touch</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        Get in touch
+                      </div>
                       <p className="mt-3 text-sm leading-6 text-foreground/85">
-                        For collaboration, consulting, or product engineering discussions, the best starting point
-                        is the portfolio. For writing and longer-form ideas, Inkwell is the better destination.
-                        You can also explore the repository to see this work in progress.
-                        If this project is useful, please{' '}
+                        For collaboration, consulting, or product engineering
+                        discussions, the best starting point is the portfolio.
+                        For writing and longer-form ideas, Inkwell is the better
+                        destination. You can also explore the repository to see
+                        this work in progress. If this project is useful, please{" "}
                         <a
                           href={REPO_URL}
                           target="_blank"
