@@ -10,6 +10,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { useDesignStore } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import type { SystemNodeData } from '@/store/useDesignStore';
 import { CATEGORY_COLORS } from '@/types/system-design';
 import SystemNodeComponent from '@/components/system-design/SystemNode';
@@ -28,9 +29,30 @@ const edgeTypes = { systemEdge: SystemEdgeComponent };
 
 export default function Index() {
   const {
-    nodes, edges, onNodesChange, onEdgesChange, onConnect,
-    addNode, selectNode, selectEdge, importJSON, selectedNodeId, selectedEdgeId,
-  } = useDesignStore();
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  addNode,
+  selectNode,
+  selectEdge,
+  importJSON,
+  selectedNodeId,
+  selectedEdgeId
+} = useDesignStore(useShallow((state) => ({
+  nodes: state.nodes,
+  edges: state.edges,
+  onNodesChange: state.onNodesChange,
+  onEdgesChange: state.onEdgesChange,
+  onConnect: state.onConnect,
+  addNode: state.addNode,
+  selectNode: state.selectNode,
+  selectEdge: state.selectEdge,
+  importJSON: state.importJSON,
+  selectedNodeId: state.selectedNodeId,
+  selectedEdgeId: state.selectedEdgeId
+})));
 
   const reactFlowRef = useRef<ReactFlowInstance | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
