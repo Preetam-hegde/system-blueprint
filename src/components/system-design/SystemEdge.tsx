@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { memo, useState } from 'react';
 import {
   BaseEdge,
@@ -31,7 +32,7 @@ function SystemEdgeComponent({
   const info = PROTOCOL_KNOWLEDGE[protocol];
   const ProtocolIcon = getProtocolIcon(protocol);
   const color = info?.color ? `hsl(${info.color})` : 'hsl(var(--muted-foreground))';
-  const { mode, replayTrace } = useDesignStore((state) => state.simulation);
+  const { mode, replayTrace } = useDesignStore(useShallow((state) => state.simulation));
 
   const isAsync = protocol === 'Pub/Sub' || protocol === 'AMQP';
   const isStream = protocol === 'WebSocket' || protocol === 'MQTT';
