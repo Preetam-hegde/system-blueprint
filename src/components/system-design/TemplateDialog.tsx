@@ -17,6 +17,7 @@ import {
   CarTaxiFront,
   Sparkles,
 } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useDesignStore, type SystemNodeData } from '@/store/useDesignStore';
 import type { Edge, Node } from '@xyflow/react';
 import type { EdgeConfig, NodeCategory, SystemNodeType } from '@/types/system-design';
@@ -462,7 +463,12 @@ interface TemplateDialogProps {
 }
 
 export default function TemplateDialog({ trigger = 'default' }: TemplateDialogProps) {
-  const { importJSON, clearCanvas } = useDesignStore();
+  const { importJSON, clearCanvas } = useDesignStore(
+    useShallow((state) => ({
+      importJSON: state.importJSON,
+      clearCanvas: state.clearCanvas,
+    }))
+  );
   const [open, setOpen] = useState(false);
   const [activeTag, setActiveTag] = useState<string>('all');
 
