@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useDesignStore } from '@/store/useDesignStore';
 import { AlertTriangle, AlertCircle, Clock, CheckCircle2, ChevronUp, ChevronDown, Flame, Inbox, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -13,12 +14,34 @@ const ICON_MAP = {
 };
 
 export default function AnalysisPanel() {
-  const { warnings, nodes, edges, simulation } = useDesignStore();
+  const {
+    warnings,
+    nodes,
+    edges,
+    simulationRunning,
+    simulationMode,
+    simulationStep,
+    simulationMaxSteps,
+    simulationFailedNodeIds,
+    simulationScenarioType,
+  } = useDesignStore(
+    useShallow((state) => ({
+      warnings: state.warnings,
+      nodes: state.nodes,
+      edges: state.edges,
+      simulationRunning: state.simulation.running,
+      simulationMode: state.simulation.mode,
+      simulationStep: state.simulation.step,
+      simulationMaxSteps: state.simulation.maxSteps,
+      simulationFailedNodeIds: state.simulation.failedNodeIds,
+      simulationScenarioType: state.simulation.scenario.type,
+    }))
+  );
   const [expanded, setExpanded] = useState(false);
 
   const criticalCount = warnings.filter((w) => w.severity === 'critical').length;
   const warningCount = warnings.length - criticalCount;
-  const replayMode = simulation.mode === 'replay';
+  const replayMode = simulationMode === 'replay';
 
   return (
     <div className="border-t border-border glass shrink-0">
@@ -59,7 +82,7 @@ export default function AnalysisPanel() {
           <span>{nodes.length} nodes</span>
           <span className="opacity-40">·</span>
           <span>{edges.length} connections</span>
-          {simulation.running && (
+          {simulationRunning && (
             <Badge variant="outline" className="text-[9px] h-4 px-1.5 gap-1 text-emerald-500 border-emerald-500/30">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live
@@ -67,19 +90,19 @@ export default function AnalysisPanel() {
           )}
           {replayMode && (
             <Badge variant="outline" className="text-[9px] h-4 px-1.5">
-              Replay {simulation.step}/{simulation.maxSteps}
+              Replay {simulationStep}/{simulationMaxSteps}
             </Badge>
           )}
-          {simulation.failedNodeIds.length > 0 && (
+          {simulationFailedNodeIds.length > 0 && (
             <Badge variant="destructive" className="text-[9px] h-4 px-1.5">
-              {simulation.failedNodeIds.length} failed
+              {simulationFailedNodeIds.length} failed
             </Badge>
           )}
-          {simulation.scenario.type !== 'none' && (
+          {simulationScenarioType !== 'none' && (
             <Badge variant="secondary" className="text-[9px] h-4 px-1.5">
-              {simulation.scenario.type === 'zone-outage'
+              {simulationScenarioType === 'zone-outage'
                 ? 'Zone outage'
-                : simulation.scenario.type === 'regional-latency'
+                : simulationScenarioType === 'regional-latency'
                   ? 'Regional latency'
                   : 'Queue backlog'}
             </Badge>
