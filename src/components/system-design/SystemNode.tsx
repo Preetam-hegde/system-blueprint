@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps, useEdges } from '@xyflow/react';
 import { useDesignStore, type SystemNodeData } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import { CATEGORY_COLORS } from '@/types/system-design';
 import {
   Server, Shield, Globe, Zap, Cloud,
@@ -36,13 +37,21 @@ function SystemNodeComponent({ data, selected, id }: NodeProps) {
   const d = data as unknown as SystemNodeData;
   const Icon = ICON_MAP[d.nodeType] || Server;
   const color = CATEGORY_COLORS[d.category] || '221 83% 53%';
-  const { mode, replayTrace } = useDesignStore((state) => state.simulation);
+
+  const { mode, isReplayCurrent, isReplayPath, isReplayBottleneck } = useDesignStore(
+    useShallow((state) => {
+      const isReplayMode = state.simulation.mode === 'replay';
+      return {
+        mode: state.simulation.mode,
+        isReplayCurrent: isReplayMode && state.simulation.replayTrace.currentNodeId === id,
+        isReplayPath: isReplayMode && state.simulation.replayTrace.pathNodeIds.includes(id),
+        isReplayBottleneck: isReplayMode && state.simulation.replayTrace.bottleneckNodeIds.includes(id),
+      };
+    })
+  );
+
   const loadPct = d.throughputLimit > 0 ? (d.currentLoad / d.throughputLimit) * 100 : 0;
   const isFailed = Boolean(d.isFailed);
-  const isReplayMode = mode === 'replay';
-  const isReplayCurrent = isReplayMode && replayTrace.currentNodeId === id;
-  const isReplayPath = isReplayMode && replayTrace.pathNodeIds.includes(id);
-  const isReplayBottleneck = isReplayMode && replayTrace.bottleneckNodeIds.includes(id);
 
   const isOverloaded = d.isBottleneck;
   const isWarning = d.isSpof;

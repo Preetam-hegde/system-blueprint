@@ -6,6 +6,7 @@ import {
   type EdgeProps,
 } from '@xyflow/react';
 import { useDesignStore } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import type { EdgeConfig } from '@/types/system-design';
 import { PROTOCOL_KNOWLEDGE } from '@/types/system-design';
 import { getProtocolIcon } from './ProtocolBadge';
@@ -31,14 +32,20 @@ function SystemEdgeComponent({
   const info = PROTOCOL_KNOWLEDGE[protocol];
   const ProtocolIcon = getProtocolIcon(protocol);
   const color = info?.color ? `hsl(${info.color})` : 'hsl(var(--muted-foreground))';
-  const { mode, replayTrace } = useDesignStore((state) => state.simulation);
+
+  const { isReplayCurrent, isReplayPath } = useDesignStore(
+    useShallow((state) => {
+      const isReplayMode = state.simulation.mode === 'replay';
+      return {
+        isReplayCurrent: isReplayMode && state.simulation.replayTrace.currentEdgeId === id,
+        isReplayPath: isReplayMode && state.simulation.replayTrace.pathEdgeIds.includes(id),
+      };
+    })
+  );
 
   const isAsync = protocol === 'Pub/Sub' || protocol === 'AMQP';
   const isStream = protocol === 'WebSocket' || protocol === 'MQTT';
   const dashArray = isAsync ? '8,5' : isStream ? '3,4' : undefined;
-  const isReplayMode = mode === 'replay';
-  const isReplayCurrent = isReplayMode && replayTrace.currentEdgeId === id;
-  const isReplayPath = isReplayMode && replayTrace.pathEdgeIds.includes(id);
 
   const active = selected || hovered || isReplayCurrent;
 

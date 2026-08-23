@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDesignStore, type SystemNodeData } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
@@ -39,9 +40,41 @@ const loadSavedPresets = (): SavedSimulationPreset[] => {
 
 export default function SimulationControls() {
   const {
-    simulation, setSimulation, updateNodeLoads, runAnalysis,
+    setSimulation, updateNodeLoads, runAnalysis,
     nodes, advanceSimulationStep, resetSimulationReplay, toggleNodeFailure,
-  } = useDesignStore();
+    simRunning, simSpeed, simMode, simStep, simMaxSteps, simFailedNodeIds, simManualFailedNodeIds, simScenario, simRps, simPacketLossPct, simRetryAttempts, simRetryBackoffMs, simExtraLatencyMs, simEstimatedRetries, simTotalLatencyMs
+  } = useDesignStore(
+    useShallow((state) => ({
+      setSimulation: state.setSimulation,
+      updateNodeLoads: state.updateNodeLoads,
+      runAnalysis: state.runAnalysis,
+      nodes: state.nodes,
+      advanceSimulationStep: state.advanceSimulationStep,
+      resetSimulationReplay: state.resetSimulationReplay,
+      toggleNodeFailure: state.toggleNodeFailure,
+      simRunning: state.simulation.running,
+      simSpeed: state.simulation.speed,
+      simMode: state.simulation.mode,
+      simStep: state.simulation.step,
+      simMaxSteps: state.simulation.maxSteps,
+      simFailedNodeIds: state.simulation.failedNodeIds,
+      simManualFailedNodeIds: state.simulation.manualFailedNodeIds,
+      simScenario: state.simulation.scenario,
+      simRps: state.simulation.rps,
+      simPacketLossPct: state.simulation.packetLossPct,
+      simRetryAttempts: state.simulation.retryAttempts,
+      simRetryBackoffMs: state.simulation.retryBackoffMs,
+      simExtraLatencyMs: state.simulation.extraLatencyMs,
+      simEstimatedRetries: state.simulation.replayTrace.estimatedRetries,
+      simTotalLatencyMs: state.simulation.replayTrace.totalLatencyMs,
+    }))
+  );
+  const simulation = {
+    running: simRunning, speed: simSpeed, mode: simMode, step: simStep, maxSteps: simMaxSteps,
+    failedNodeIds: simFailedNodeIds, manualFailedNodeIds: simManualFailedNodeIds, scenario: simScenario,
+    rps: simRps, packetLossPct: simPacketLossPct, retryAttempts: simRetryAttempts, retryBackoffMs: simRetryBackoffMs,
+    extraLatencyMs: simExtraLatencyMs, replayTrace: { estimatedRetries: simEstimatedRetries, totalLatencyMs: simTotalLatencyMs }
+  };
   const [simulationOpen, setSimulationOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [savedPresets, setSavedPresets] = useState<SavedSimulationPreset[]>(loadSavedPresets);

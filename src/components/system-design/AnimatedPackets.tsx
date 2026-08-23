@@ -1,4 +1,5 @@
 import { useDesignStore } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useReactFlow } from '@xyflow/react';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import type { SystemNodeData } from '@/store/useDesignStore';
@@ -18,7 +19,19 @@ interface Packet {
 }
 
 export default function AnimatedPackets() {
-  const { edges, nodes, simulation } = useDesignStore();
+  const { edges, nodes, simRunning, simSpeed, simRps, simFailedNodeIds, simScenario, simMode } = useDesignStore(
+    useShallow((state) => ({
+      edges: state.edges,
+      nodes: state.nodes,
+      simRunning: state.simulation.running,
+      simSpeed: state.simulation.speed,
+      simRps: state.simulation.rps,
+      simFailedNodeIds: state.simulation.failedNodeIds,
+      simScenario: state.simulation.scenario,
+      simMode: state.simulation.mode,
+    }))
+  );
+  const simulation = { running: simRunning, speed: simSpeed, rps: simRps, failedNodeIds: simFailedNodeIds, scenario: simScenario, mode: simMode };
   const [packets, setPackets] = useState<Packet[]>([]);
   const reactFlow = useReactFlow();
   const viewportRef = useRef({ x: 0, y: 0, zoom: 1 });
