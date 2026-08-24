@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDesignStore, type SystemNodeData } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
@@ -39,9 +40,49 @@ const loadSavedPresets = (): SavedSimulationPreset[] => {
 
 export default function SimulationControls() {
   const {
-    simulation, setSimulation, updateNodeLoads, runAnalysis,
+    simulationSpeed, simulationRps, simulationMode, simulationStep, simulationMaxSteps, simulationPacketLossPct, simulationExtraLatencyMs, simulationManualFailedNodeIds, simulationFailedNodeIds, simulationScenario, simulationRunning, simulationRetryAttempts, simulationRetryBackoffMs, simulationReplayTrace,
+    setSimulation, updateNodeLoads, runAnalysis,
     nodes, advanceSimulationStep, resetSimulationReplay, toggleNodeFailure,
-  } = useDesignStore();
+  } = useDesignStore(useShallow((state) => ({
+    simulationSpeed: state.simulation.speed,
+    simulationRps: state.simulation.rps,
+    simulationMode: state.simulation.mode,
+    simulationStep: state.simulation.step,
+    simulationMaxSteps: state.simulation.maxSteps,
+    simulationPacketLossPct: state.simulation.packetLossPct,
+    simulationExtraLatencyMs: state.simulation.extraLatencyMs,
+    simulationManualFailedNodeIds: state.simulation.manualFailedNodeIds,
+    simulationFailedNodeIds: state.simulation.failedNodeIds,
+    simulationScenario: state.simulation.scenario,
+    simulationRunning: state.simulation.running,
+    simulationRetryAttempts: state.simulation.retryAttempts,
+    simulationRetryBackoffMs: state.simulation.retryBackoffMs,
+    simulationReplayTrace: state.simulation.replayTrace,
+    setSimulation: state.setSimulation,
+    updateNodeLoads: state.updateNodeLoads,
+    runAnalysis: state.runAnalysis,
+    nodes: state.nodes,
+    advanceSimulationStep: state.advanceSimulationStep,
+    resetSimulationReplay: state.resetSimulationReplay,
+    toggleNodeFailure: state.toggleNodeFailure,
+  })));
+
+  const simulation = {
+    speed: simulationSpeed,
+    rps: simulationRps,
+    mode: simulationMode,
+    step: simulationStep,
+    maxSteps: simulationMaxSteps,
+    packetLossPct: simulationPacketLossPct,
+    extraLatencyMs: simulationExtraLatencyMs,
+    manualFailedNodeIds: simulationManualFailedNodeIds,
+    failedNodeIds: simulationFailedNodeIds,
+    scenario: simulationScenario,
+    running: simulationRunning,
+    retryAttempts: simulationRetryAttempts,
+    retryBackoffMs: simulationRetryBackoffMs,
+    replayTrace: simulationReplayTrace,
+  };
   const [simulationOpen, setSimulationOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [savedPresets, setSavedPresets] = useState<SavedSimulationPreset[]>(loadSavedPresets);
