@@ -1,4 +1,5 @@
 import { useDesignStore } from '@/store/useDesignStore';
+import { useShallow } from 'zustand/react/shallow';
 import { AlertTriangle, AlertCircle, Clock, CheckCircle2, ChevronUp, ChevronDown, Flame, Inbox, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
@@ -13,7 +14,26 @@ const ICON_MAP = {
 };
 
 export default function AnalysisPanel() {
-  const { warnings, nodes, edges, simulation } = useDesignStore();
+  const { warnings, nodes, edges, simulationMode, simulationStep, simulationMaxSteps, simulationFailedNodeIds, simulationScenario, simulationRunning } = useDesignStore(useShallow((state) => ({
+    warnings: state.warnings,
+    nodes: state.nodes,
+    edges: state.edges,
+    simulationMode: state.simulation.mode,
+    simulationStep: state.simulation.step,
+    simulationMaxSteps: state.simulation.maxSteps,
+    simulationFailedNodeIds: state.simulation.failedNodeIds,
+    simulationScenario: state.simulation.scenario,
+    simulationRunning: state.simulation.running,
+  })));
+
+  const simulation = {
+    mode: simulationMode,
+    step: simulationStep,
+    maxSteps: simulationMaxSteps,
+    failedNodeIds: simulationFailedNodeIds,
+    scenario: simulationScenario,
+    running: simulationRunning,
+  };
   const [expanded, setExpanded] = useState(false);
 
   const criticalCount = warnings.filter((w) => w.severity === 'critical').length;
